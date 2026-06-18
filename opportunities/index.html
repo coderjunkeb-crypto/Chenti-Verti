@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mentoria Hub · Opportunities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Major+Mono+Display&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<style>
+/* ============================================================
+   DESIGN TOKENS — Nothing OS palette, one accent ≤3 per screen
+   ============================================================ */
+:root {
+  --bg: #0A0A0B;
+  --bg-deep: #070708;
+  --surface: #161618;
+  --fg: #EAEAEA;
+  --fg-dim: #8A8A8E;
+  --mute: #4A4A4E;
+  --border: #1A1A1D;
+  --rule: #2A2A2E;
+  --it: #FF6B35;
+  --it-soft: rgba(255,107,53,0.12);
+  --grid: rgba(255,255,255,0.04);
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--fg); overflow-x: hidden; line-height: 1.4; }
+img, svg { image-rendering: pixelated; shape-rendering: crispEdges; }
+a { color: inherit; text-decoration: none; }
+button { background: none; border: none; color: inherit; cursor: pointer; font: inherit; }
+input, select { font: inherit; color: inherit; }
+::selection { background: var(--it); color: var(--bg); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--rule); }
+::-webkit-scrollbar-thumb:hover { background: var(--it); }
+
+.press { font-family: 'Press Start 2P', monospace; }
+.pixel { font-family: 'VT323', monospace; }
+.mono { font-family: 'Major Mono Display', monospace; }
+.space { font-family: 'Space Grotesk', sans-serif; }
+
+/* ============================================================
+   BACKGROUND — pixel dot grid, fixed, very subtle
+   ============================================================ */
+.bg-dots {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(circle, var(--grid) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+  opacity: 0.6;
+}
+.bg-vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 90% 70% at 50% 30%, transparent 0%, rgba(10,10,11,0.7) 100%);
+}
+
+/* ============================================================
+   CORNER MARKERS — system level (Nothing OS)
+   ============================================================ */
+.corner-tl, .corner-br {
+  position: fixed; z-index: 90;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--mute);
+  display: flex; align-items: center; gap: 8px;
+}
+.corner-tl { top: 18px; left: 22px; }
+.corner-br { bottom: 18px; right: 22px; }
+.corner-dot { width: 6px; height: 6px; background: var(--it); animation: blink 4s steps(1) infinite; }
+@keyframes blink { 0%, 92%, 100% { opacity: 1; } 94%, 98% { opacity: 0.2; } }
+@media (max-width: 768px) { .corner-tl, .corner-br { font-size: 9px; } }
+
+/* progress bar (top) */
+.progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--it); z-index: 200; width: 0%; transition: width .1s linear; }
+
+/* ============================================================
+   STAGE
+   ============================================================ */
+main { position: relative; z-index: 5; max-width: 1400px; margin: 0 auto; padding: 80px 6vw 120px; }
+@media (max-width: 768px) { main { padding: 64px 4vw 96px; } }
+
+/* ============================================================
+   SECTION: HERO SEARCH — clip-path wipe reveal (1 motion)
+   ============================================================ */
+.hero { position: relative; padding-bottom: 48px; margin-bottom: 32px; border-bottom: 1px solid var(--border); }
+.meta-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-family: 'Major Mono Display', monospace; font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute);
+  margin-bottom: 24px;
+}
+.meta-id { color: var(--it); }
+.meta-dot { color: var(--rule); }
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  font-size: clamp(40px, 7vw, 88px); line-height: 0.98; letter-spacing: -0.035em;
+  color: var(--fg);
+  margin-bottom: 18px;
+}
+.hero h1 em { font-style: italic; color: var(--it); font-weight: 500; }
+.hero p {
+  max-width: 560px; color: var(--fg-dim); font-size: 17px; line-height: 1.55;
+  margin-bottom: 36px;
+}
+/* the search bar — clip-path wipe on reveal */
+.searchbox {
+  position: relative;
+  display: flex; align-items: center; gap: 0;
+  background: var(--surface); border: 1px solid var(--rule);
+  max-width: 640px;
+  clip-path: inset(0 100% 0 0);
+}
+.searchbox.is-in { animation: wipe 1s var(--ease-ios) forwards; }
+@keyframes wipe { to { clip-path: inset(0 0 0 0); } }
+.searchbox svg { width: 18px; height: 18px; margin-left: 18px; flex-shrink: 0; opacity: 0.6; }
+.searchbox input {
+  flex: 1; background: transparent; border: none; outline: none;
+  padding: 18px 16px; font-size: 16px; color: var(--fg);
+  font-family: 'Space Grotesk', sans-serif;
+}
+.searchbox input::placeholder { color: var(--mute); }
+.searchbox kbd {
+  font-family: 'Major Mono Display', monospace; font-size: 11px;
+  color: var(--mute); border: 1px solid var(--rule);
+  padding: 4px 8px; margin-right: 14px; letter-spacing: 0.08em;
+}
+.stats-line {
+  margin-top: 20px; display: flex; gap: 24px; flex-wrap: wrap;
+  font-family: 'Major Mono Display', monospace; font-size: 12px;
+  color: var(--mute); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.stats-line b { color: var(--it); font-weight: 400; }
+
+/* ============================================================
+   COMMAND PALETTE (⌘K) — scale-overshoot modal (1 motion)
+   ============================================================ */
+.palette-backdrop {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(7,7,8,0.8); backdrop-filter: blur(8px);
+  display: none; align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+}
+.palette-backdrop.is-open { display: flex; }
+.palette {
+  width: min(640px, 92vw); background: var(--bg-deep);
+  border: 1px solid var(--rule); box-shadow: 0 32px 80px -16px rgba(0,0,0,0.9);
+  transform: scale(0.94); opacity: 0;
+}
+.palette-backdrop.is-open .palette { animation: pop 0.4s var(--ease-bounce) forwards; }
+@keyframes pop { to { transform: scale(1); opacity: 1; } }
+.palette-input-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+.palette-input-row svg { width: 18px; height: 18px; margin: 0 16px; opacity: 0.5; }
+.palette input {
+  flex: 1; background: transparent; border: none; outline: none;
+  padding: 20px 0; font-size: 17px; font-family: 'Space Grotesk', sans-serif;
+}
+.palette-list { max-height: 50vh; overflow-y: auto; }
+.palette-section {
+  padding: 10px 18px 6px; font-family: 'Major Mono Display', monospace;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute);
+}
+.palette-item {
+  display: flex; align-items: center; gap: 14px; padding: 12px 18px;
+  cursor: pointer; border-left: 2px solid transparent;
+}
+.palette-item.active { background: var(--it-soft); border-left-color: var(--it); }
+.palette-item .pi-title { flex: 1; font-size: 15px; color: var(--fg); }
+.palette-item .pi-meta { font-family: 'Major Mono Display', monospace; font-size: 10px; color: var(--mute); letter-spacing: 0.1em; text-transform: uppercase; }
+.palette-foot {
+  display: flex; gap: 16px; padding: 10px 18px; border-top: 1px solid var(--border);
+  font-family: 'Major Mono Display', monospace; font-size: 10px; color: var(--mute);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.palette-foot kbd { border: 1px solid var(--rule); padding: 2px 6px; }
+
+/* ============================================================
+   LAYOUT: sidebar facets + results
+   ============================================================ */
+.layout { display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; gap: 24px; } }
+
+/* facets sidebar */
+.facets { position: sticky; top: 24px; align-self: start; }
+@media (max-width: 960px) { .facets { position: static; } }
+.facet-group { margin-bottom: 28px; }
+.facet-label {
+  font-family: 'Major Mono Display', monospace; font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.facet-label::before { content: ''; width: 12px; height: 1px; background: var(--rule); }
+.facet-opt {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; font-size: 14px; color: var(--fg-dim);
+  cursor: pointer; transition: color .2s;
+}
+.facet-opt:hover { color: var(--fg); }
+.facet-opt.active { color: var(--it); }
+.facet-opt .fo-count { font-family: 'Major Mono Display', monospace; font-size: 11px; color: var(--mute); }
+.facet-opt.active .fo-count { color: var(--it); }
+
+/* grade chips */
+.grade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.grade-chip {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule); font-family: 'Press Start 2P', monospace; font-size: 11px;
+  color: var(--fg-dim); cursor: pointer; transition: all .2s var(--ease-ios);
+}
+.grade-chip:hover { border-color: var(--it); color: var(--fg); }
+.grade-chip.active { background: var(--it); color: var(--bg); border-color: var(--it); }
+
+/* ============================================================
+   RESULTS BAR
+   ============================================================ */
+.results-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.results-count { font-family: 'Major Mono Display', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-dim); }
+.results-count b { color: var(--it); font-weight: 400; }
+.sort-select { display: flex; gap: 4px; }
+.sort-btn {
+  font-family: 'Major Mono Display', monospace; font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--mute); padding: 6px 10px;
+  border: 1px solid transparent; cursor: pointer; transition: all .2s;
+}
+.sort-btn:hover { color: var(--fg); }
+.sort-btn.active { color: var(--it); border-color: var(--rule); }
+
+/* active filter chips */
+.chips-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border: 1px solid var(--rule); background: var(--surface);
+  font-family: 'Major Mono Display', monospace; font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg);
+}
+.chip button { color: var(--mute); font-size: 14px; line-height: 1; }
+.chip button:hover { color: var(--it); }
+.chip.clear-all { color: var(--it); border-color: var(--it); cursor: pointer; }
+
+/* ============================================================
+   RESULT CARD — one motion: clip-path reveal on scroll (stagger)
+   transparency: reasons visible. Hover only on the Save button (iOS principle)
+   ============================================================ */
+.result-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.result {
+  background: var(--bg); padding: 24px 4px; display: grid;
+  grid-template-columns: 56px 1fr auto; gap: 20px; align-items: start;
+  clip-path: inset(0 0 100% 0); opacity: 0;
+}
+.result.is-in { animation: reveal-up 0.6s var(--ease-ios) forwards; }
+@keyframes reveal-up { to { clip-path: inset(0 0 0 0); opacity: 1; } }
+
+.r-prestige { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 2px; }
+.r-prestige .bars { display: flex; flex-direction: column-reverse; gap: 3px; }
+.r-prestige .bar { width: 18px; height: 4px; background: var(--rule); }
+.r-prestige .bar.on { background: var(--it); }
+.r-prestige .lvl { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--mute); letter-spacing: 0; }
+
+.r-body { min-width: 0; }
+.r-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.r-cat {
+  font-family: 'Major Mono Display', monospace; font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--it);
+}
+.r-title {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 22px;
+  line-height: 1.2; color: var(--fg); letter-spacing: -0.01em;
+}
+.r-title a:hover { color: var(--it); }
+.r-desc { color: var(--fg-dim); font-size: 14px; line-height: 1.55; margin: 6px 0 12px; }
+
+/* meta line: grade · format · region · cost */
+.r-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px;
+  font-family: 'Major Mono Display', monospace; font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--mute); }
+.r-meta b { color: var(--fg-dim); font-weight: 400; }
+.r-meta .deadline { color: var(--it); }
+
+/* reasons — the transparency layer */
+.r-reasons { display: flex; gap: 8px; flex-wrap: wrap; }
+.reason {
+  font-family: 'Major Mono Display', monospace; font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--rule); color: var(--fg-dim);
+}
+.reason.match { border-color: var(--it); color: var(--it); }
+
+/* right column: deadline urgency + save */
+.r-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.urgency {
+  font-family: 'Press Start 2P', monospace; font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 5px 8px;
+}
+.urgency-soon { background: var(--it); color: var(--bg); }
+.urgency-mid { border: 1px solid var(--it); color: var(--it); }
+.urgency-far { color: var(--mute); }
+.urgency-open { color: var(--fg-dim); border: 1px solid var(--rule); }
+.urgency-unknown { color: var(--mute); }
+
+.save-btn {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Major Mono Display', monospace; font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 8px 14px; border: 1px solid var(--rule);
+  color: var(--fg-dim); cursor: pointer; transition: all .2s var(--ease-ios);
+}
+.save-btn:hover { border-color: var(--it); color: var(--it); transform: translateY(-1px); }
+.save-btn.saved { background: var(--it); color: var(--bg); border-color: var(--it); }
+.save-btn svg { width: 12px; height: 12px; }
+
+/* source link — small, honest */
+.r-source { font-family: 'Major Mono Display', monospace; font-size: 10px; color: var(--mute); margin-top: 8px; letter-spacing: 0.08em; }
+.r-source a { border-bottom: 1px solid var(--rule); }
+.r-source a:hover { color: var(--it); border-color: var(--it); }
+
+/* empty state */
+.empty { padding: 80px 24px; text-align: center; border: 1px dashed var(--rule); }
+.empty p { font-family: 'Major Mono Display', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+
+/* footer divider (text-as-divider, iOS system level) */
+.divider {
+  font-family: 'VT323', monospace; font-size: 12px; color: var(--rule);
+  letter-spacing: 0.2em; text-transform: uppercase; text-align: center;
+  padding: 48px 0 24px;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .searchbox, .result { clip-path: none !important; opacity: 1 !important; }
+}
+
+/* mobile: result grid collapses */
+@media (max-width: 640px) {
+  .result { grid-template-columns: 1fr; gap: 14px; }
+  .r-prestige { flex-direction: row; }
+  .r-actions { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+  <!-- ============================================================
+       MENTORIA HUB — TOP NAVBAR (connects opportunities + app + landing)
+       ============================================================ -->
+  <header class="mh-topnav" role="banner">
+    <a href="../index.html" class="mh-topnav__brand">
+      <span class="mh-topnav__brand-dot"></span>
+      <span class="mh-topnav__brand-text">MENTORIA HUB</span>
+    </a>
+    <nav class="mh-topnav__links" aria-label="Primary">
+      <a href="../index.html" class="mh-topnav__link">Home</a>
+      <a href="../index.html#directions" class="mh-topnav__link">Directions</a>
+      <a href="../index.html#opportunities" class="mh-topnav__link">Landing · Opps</a>
+      <a href="../index.html#courses" class="mh-topnav__link">Courses</a>
+      <a href="../index.html#roadmap" class="mh-topnav__link">Roadmap</a>
+      <a href="./" class="mh-topnav__link mh-topnav__link--demo">Opportunities</a>
+    </nav>
+    <div class="mh-topnav__app">
+      <span class="mh-topnav__app-label">App</span>
+      <a href="#" data-app="dashboard" class="mh-topnav__app-link">Dashboard</a>
+      <a href="#" data-app="calendar" class="mh-topnav__app-link">Calendar</a>
+      <a href="#" data-app="recommendations" class="mh-topnav__app-link">For You</a>
+      <a href="#" data-app="profile" class="mh-topnav__app-link">Profile</a>
+      <a href="#" data-app="admin" class="mh-topnav__app-link">Admin</a>
+    </div>
+  </header>
+  <style>
+    .mh-topnav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      display: flex; align-items: center; gap: 24px;
+      padding: 0 32px; height: 60px;
+      background: rgba(10, 10, 11, 0.85);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid #2A2A2E;
+      font-family: 'Major Mono Display', monospace;
+    }
+    .mh-topnav__brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: #EAEAEA;
+      font-size: 14px; letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+    .mh-topnav__brand-dot { width: 10px; height: 10px; background: #FF6B35; display: block; }
+    .mh-topnav__brand-text { white-space: nowrap; }
+    .mh-topnav__links { display: flex; align-items: center; gap: 4px; flex: 1; }
+    .mh-topnav__link {
+      display: inline-flex; align-items: center; height: 60px;
+      padding: 0 12px;
+      text-decoration: none; color: #8A8A8E;
+      font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .mh-topnav__link:hover { color: #EAEAEA; border-bottom-color: #FF6B35; }
+    .mh-topnav__link--demo { color: #FF6B35; }
+    .mh-topnav__link--demo:hover { color: #FF6B35; opacity: 0.7; }
+    .mh-topnav__app {
+      display: flex; align-items: center; gap: 2px;
+      padding-left: 16px; border-left: 1px solid #2A2A2E;
+    }
+    .mh-topnav__app-label {
+      display: inline-flex; align-items: center; height: 28px;
+      padding: 0 10px; background: #FF6B35; color: #0A0A0B;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      margin-right: 4px;
+    }
+    .mh-topnav__app-link {
+      display: inline-flex; align-items: center; height: 28px;
+      padding: 0 10px;
+      text-decoration: none; color: #C8C8CE;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .mh-topnav__app-link:hover { color: #FF6B35; background: rgba(255, 107, 53, 0.08); }
+    body { padding-top: 60px; }
+    @media (max-width: 1100px) { .mh-topnav__links { display: none; } }
+    @media (max-width: 720px) { .mh-topnav__app-label { display: none; } .mh-topnav__app { padding-left: 8px; } }
+  </style>
+  <script>
+    // Resolve app routes. Set window.MH_APP_URL to override (e.g. https://app.mentoria.kz).
+    (function() {
+      var base = (typeof window.MH_APP_URL === 'string' && window.MH_APP_URL)
+        || (location.protocol === 'http:' || location.protocol === 'https:'
+              ? location.protocol + '//' + location.hostname + ':3000'
+              : 'http://localhost:3000');
+      var map = {
+        dashboard: '/dashboard',
+        calendar: '/calendar',
+        recommendations: '/recommendations',
+        profile: '/profile',
+        admin: '/admin'
+      };
+      document.querySelectorAll('a[data-app]').forEach(function(a) {
+        var key = a.getAttribute('data-app');
+        if (map[key]) a.setAttribute('href', base + map[key]);
+      });
+    })();
+  </script>
+
+<!--BUILT-START-->
+<script>
+// SEARCH ENGINE — auto-inlined from lib/search.mjs (do not edit here)
+// ============================================================
+// MENTORIA HUB — SEARCH ENGINE
+// Deterministic, explainable ranking. No black box, no LLM.
+// Combines: (1) TF-IDF text relevance, (2) faceted/grade matching,
+// (3) deadline urgency, (4) prestige. Every result ships with reasons.
+// ============================================================
+
+// ---------- Tokenizer ----------
+const STOPWORDS = new Set([
+  "a","an","the","and","or","but","for","to","of","in","on","at","by","with",
+  "is","are","be","been","i","you","we","they","it","this","that","my","me",
+  "what","which","who","whom","whose","when","where","why","how","all","any",
+  "some","no","not","as","if","then","than","so","do","does","did","can",
+  "could","should","would","will","just","more","most","other","into","out",
+]);
+
+// ---------- Synonyms / query expansion ----------
+// Maps informal or variant terms to the canonical tokens used in the index.
+// Keeps the index clean while tolerating how students actually type.
+const SYNONYMS = {
+  code: ["programming", "cs", "informatics"],
+  coding: ["programming", "cs"],
+  programmer: ["programming", "cs"],
+  programmeren: ["programming", "cs"],
+  hack: ["hackathon"],
+  robotics: ["robotics", "engineering"],
+  robot: ["robotics"],
+  grant: ["scholarship"],
+  money: ["scholarship", "funding"],
+  fund: ["scholarship", "funding"],
+  free: ["free", "scholarship"],
+  uni: ["university"],
+  college: ["university"],
+  prep: ["preparatory", "foundation"],
+  english: ["english", "language"],
+  language: ["language"],
+  maths: ["math", "mathematics"],
+  mathematics: ["math"],
+  physics: ["physics"],
+  chem: ["chemistry"],
+  bio: ["biology"],
+  summer: ["summer"],
+  camp: ["summer", "camp"],
+  research: ["research", "internship", "lab"],
+  lab: ["research", "lab"],
+  internship: ["internship", "research"],
+  volunteer: ["social"],
+  volunteering: ["social"],
+  business: ["business"],
+  startup: ["business"],
+  finance: ["finance", "business"],
+  olympiad: ["olympiad", "competition"],
+  competition: ["competition", "olympiad"],
+  contest: ["contest", "competition"],
+  exam: ["test"],
+  test: ["test", "sat", "ielts"],
+  sat: ["sat", "test"],
+  ielts: ["ielts", "test", "english"],
+  usa: ["usa", "international"],
+  america: ["usa", "international"],
+  international: ["international"],
+  abroad: ["study-abroad", "international"],
+  study: ["university", "study-abroad"],
+  degree: ["university", "bachelor"],
+  bachelor: ["bachelor", "university"],
+  undergraduate: ["bachelor", "university"],
+  kz: ["kz", "kazakhstan"],
+  kazakhstan: ["kz", "kazakhstan"],
+  astana: ["astana"],
+  almaty: ["almaty"],
+};
+
+function expandToken(t) {
+  // returns the token itself plus any synonym expansions
+  const syns = SYNONYMS[t];
+  return syns && syns.length ? [t, ...syns] : [t];
+}
+
+function tokenize(text) {
+  if (!text) return [];
+  const raw = String(text)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .split(/\s+/)
+    .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+  // expand synonyms only for short queries (keeps long queries from exploding)
+  if (raw.length <= 4) {
+    const out = [];
+    for (const t of raw) out.push(...expandToken(t));
+    return out;
+  }
+  return raw;
+}
+
+// ---------- Build TF-IDF index over the corpus ----------
+// Each opportunity → one "document". Fields weighted by importance.
+const FIELD_WEIGHTS = {
+  title: 5,
+  tags: 4,
+  direction: 3,
+  category: 3,
+  description: 1.5,
+  requirements: 1,
+};
+
+function buildIndex(opps) {
+  const docs = [];
+  let df = {}; // document frequency per term
+  // first pass: build weighted term vectors
+  for (const opp of opps) {
+    const termFreq = {};
+    for (const [field, weight] of Object.entries(FIELD_WEIGHTS)) {
+      let val = opp[field];
+      if (Array.isArray(val)) val = val.join(" ");
+      const tokens = tokenize(val);
+      for (const t of tokens) {
+        termFreq[t] = (termFreq[t] || 0) + weight;
+      }
+    }
+    // also index the source for matching "kz", "global", etc.
+    for (const t of tokenize(`${opp.region} ${opp.format} ${opp.cost}`)) {
+      termFreq[t] = (termFreq[t] || 0) + 2;
+    }
+    const terms = Object.keys(termFreq);
+    for (const t of terms) df[t] = (df[t] || 0) + 1;
+    docs.push({ id: opp.id, opp, termFreq, terms });
+  }
+  const N = docs.length;
+  const idf = {};
+  for (const t in df) idf[t] = Math.log((N + 1) / (df[t] + 1)) + 1;
+
+  // precompute tf-idf vectors + magnitude for cosine
+  for (const doc of docs) {
+    const vec = {};
+    let mag = 0;
+    for (const t of doc.terms) {
+      const w = doc.termFreq[t] * idf[t];
+      vec[t] = w;
+      mag += w * w;
+    }
+    doc.vec = vec;
+    doc.mag = Math.sqrt(mag) || 1;
+  }
+  return { docs, idf };
+}
+
+// ---------- Score a query against the index ----------
+function cosine(queryVec, queryMag, doc) {
+  let dot = 0;
+  for (const t in queryVec) {
+    if (doc.vec[t]) dot += queryVec[t] * doc.vec[t];
+  }
+  return queryMag && doc.mag ? dot / (queryMag * doc.mag) : 0;
+}
+
+/**
+ * Search opportunities.
+ * @param {Array} opps - full opportunity list
+ * @param {Object} params
+ *   - query: string (free text)
+ *   - grade: number | null
+ *   - direction: string | null (stem|business|cs|science|humanities|...)
+ *   - category: string | null (olympiad|scholarship|summer_school|...)
+ *   - format: string | null
+ *   - status: string | null (open|soon|past)
+ *   - cost: string | null (free|paid)
+ *   - sort: 'relevance'|'deadline'|'prestige'
+ * @returns {Array} ranked results with score + reasons
+ */
+function search(opps, params = {}) {
+  const {
+    query = "",
+    grade = null,
+    direction = null,
+    category = null,
+    format = null,
+    cost = null,
+    sort = "relevance",
+  } = params;
+
+  const index = buildIndex(opps);
+
+  // query vector
+  const qTokens = tokenize(query);
+  const qTermFreq = {};
+  for (const t of qTokens) qTermFreq[t] = (qTermFreq[t] || 0) + 1;
+  const queryVec = {};
+  let qMag = 0;
+  for (const t in qTermFreq) {
+    const w = qTermFreq[t] * (index.idf[t] || 1);
+    queryVec[t] = w;
+    qMag += w * w;
+  }
+  qMag = Math.sqrt(qMag) || 1;
+  const hasQuery = qTokens.length > 0;
+
+  const now = Date.now();
+  const DAY = 86400000;
+
+  const scored = index.docs.map((doc) => {
+    const opp = doc.opp;
+    const reasons = [];
+    let score = 0;
+    let gradeMatch = true;
+    let facetMatch = true;
+
+    // 1. Text relevance (TF-IDF cosine), only if query present
+    let relevance = 0;
+    if (hasQuery) {
+      relevance = cosine(queryVec, qMag, doc); // 0..1
+      if (relevance > 0.001) {
+        score += relevance * 60;
+        // capture top matched terms as reasons
+        const matched = qTokens
+          .filter((t) => doc.vec[t])
+          .sort((a, b) => doc.vec[b] - doc.vec[a])
+          .slice(0, 3);
+        if (matched.length) reasons.push(`matches: ${matched.join(", ")}`);
+      }
+    } else {
+      // no query: small baseline so sort by deadline/prestige still ranks
+      score += 10;
+    }
+
+    // 2. Grade fit (hard gate, but don't drop — flag instead)
+    if (grade != null) {
+      if (grade >= opp.grade_min && grade <= opp.grade_max) {
+        score += 25;
+        reasons.push(`fits grade ${grade}`);
+      } else {
+        gradeMatch = false;
+        score -= 30;
+      }
+    }
+
+    // 3. Direction facet (soft match — direction is multi-valued)
+    if (direction) {
+      const dirs = Array.isArray(opp.direction) ? opp.direction : [opp.direction];
+      if (dirs.includes(direction)) {
+        score += 20;
+        reasons.push(`${direction} track`);
+      } else {
+        facetMatch = false;
+      }
+    }
+
+    // 4. Category / format / cost — hard facets
+    if (category && opp.category !== category) facetMatch = false;
+    if (format && opp.format !== format && opp.format !== "hybrid") facetMatch = false;
+    if (cost && opp.cost !== cost) facetMatch = false;
+
+    // 5. Deadline urgency (sooner = more actionable)
+    let daysLeft = null;
+    if (opp.deadline) {
+      daysLeft = Math.round((new Date(opp.deadline).getTime() - now) / DAY);
+      if (daysLeft > 0 && daysLeft < 30) {
+        score += 18;
+        reasons.push(`${daysLeft}d to apply`);
+      } else if (daysLeft >= 30 && daysLeft < 90) {
+        score += 8;
+      }
+    } else if (opp.deadline_tier === "recurring-monthly" || opp.deadline_tier === "recurring-weekly") {
+      score += 12;
+      reasons.push("open year-round");
+    }
+
+    // 6. Prestige boost (1..5)
+    score += (opp.prestige || 3) * 3;
+
+    return {
+      ...opp,
+      _score: Math.max(0, score),
+      _relevance: relevance,
+      _gradeMatch: gradeMatch,
+      _facetMatch: facetMatch,
+      _daysLeft: daysLeft,
+      _reasons: reasons,
+      _hidden: !gradeMatch || !facetMatch || (hasQuery && relevance < 0.001),
+    };
+  });
+
+  // Drop hidden (failed hard facets or zero relevance on a query)
+  let results = scored.filter((r) => !r._hidden);
+
+  // Sort
+  if (sort === "deadline") {
+    results.sort((a, b) => {
+      if (a._daysLeft == null && b._daysLeft == null) return 0;
+      if (a._daysLeft == null) return 1;
+      if (b._daysLeft == null) return -1;
+      return a._daysLeft - b._daysLeft;
+    });
+  } else if (sort === "prestige") {
+    results.sort((a, b) => (b.prestige || 0) - (a.prestige || 0) || b._score - a._score);
+  } else {
+    // relevance: score desc, then prestige, then alpha
+    results.sort(
+      (a, b) => b._score - a._score || (b.prestige || 0) - (a.prestige || 0)
+    );
+  }
+
+  return {
+    results,
+    total: results.length,
+    hidden: scored.length - results.length,
+    facets: computeFacets(opps, scored, { direction, category, format, cost, grade }),
+  };
+}
+
+// ---------- Facet counts (for the filter sidebar) ----------
+function computeFacets(opps, scored, active) {
+  const vis = scored.filter((r) => !r._hidden);
+  const count = (fn) => vis.filter(fn).length;
+  const facet = (values, key) =>
+    values.map((v) => ({ value: v, count: count((o) => o[key] === v) }));
+
+  return {
+    category: countUnique(vis, "category"),
+    direction: countArray(vis, "direction"),
+    format: countUnique(vis, "format"),
+    cost: countUnique(vis, "cost"),
+    region: countUnique(vis, "region"),
+  };
+}
+function countUnique(list, key) {
+  const m = {};
+  for (const o of list) m[o[key]] = (m[o[key]] || 0) + 1;
+  return Object.entries(m)
+    .sort((a, b) => b[1] - a[1])
+    .map(([value, count]) => ({ value, count }));
+}
+function countArray(list, key) {
+  const m = {};
+  for (const o of list) {
+    const vals = Array.isArray(o[key]) ? o[key] : [o[key]];
+    for (const v of vals) m[v] = (m[v] || 0) + 1;
+  }
+  return Object.entries(m)
+    .sort((a, b) => b[1] - a[1])
+    .map(([value, count]) => ({ value, count }));
+}
+
+// ---------- Suggest (for ⌘K autocomplete) ----------
+function suggest(opps, query, limit = 6) {
+  const q = tokenize(query);
+  if (!q.length) return [];
+  const index = buildIndex(opps);
+  return index.docs
+    .map((doc) => ({
+      opp: doc.opp,
+      score: q.reduce((acc, t) => acc + (doc.vec[t] || 0), 0),
+    }))
+    .filter((d) => d.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((d) => d.opp);
+}
+
+// ---------- Deadline helpers ----------
+function deadlineLabel(opp) {
+  if (opp.deadline) {
+    const d = new Date(opp.deadline);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  if (opp.deadline_note) return opp.deadline_note;
+  return "See source";
+}
+
+function deadlineUrgency(opp) {
+  if (!opp.deadline && opp.deadline_tier?.startsWith("recurring")) return "open";
+  if (opp._daysLeft == null) return "unknown";
+  if (opp._daysLeft < 0) return "past";
+  if (opp._daysLeft <= 14) return "soon";
+  if (opp._daysLeft <= 45) return "mid";
+  return "far";
+}
+
+window.__OPPS__ = [{"id":"imo","slug":"international-mathematical-olympiad","title":"International Mathematical Olympiad (IMO)","category":"olympiad","direction":["stem","math"],"format":"offline","deadline":null,"deadline_tier":"annual-july","deadline_note":"International round in July. Selection via national olympiad (KZ: Republican Olympiad, spring).","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"The pre-eminent pre-university mathematics competition. Six problems over two days, requiring proof and originality. Reach it through your country's national selection.","requirements":"Pre-university, under 20. Qualify through national olympiad. No direct registration.","apply_url":"https://www.imo-official.org/","source_url":"https://www.imo-official.org/","tags":["math","proof","competition","international","selection"],"source_type":"verified"},{"id":"ipho","slug":"international-physics-olympiad","title":"International Physics Olympiad (IPhO)","category":"olympiad","direction":["stem","science","physics"],"format":"offline","deadline":null,"deadline_tier":"annual-july","deadline_note":"International round in July. Selection via national physics olympiad.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"Theory and experimental physics problems at the pre-university level. Five-hour exams on mechanics, electromagnetism, thermodynamics, optics, and modern physics.","requirements":"Pre-university, under 20. Qualify through national olympiad.","apply_url":"https://www.ipho-new.org/","source_url":"https://www.ipho-new.org/","tags":["physics","experiment","competition","international","selection"],"source_type":"verified"},{"id":"icho","slug":"international-chemistry-olympiad","title":"International Chemistry Olympiad (IChO)","category":"olympiad","direction":["stem","science","chemistry"],"format":"offline","deadline":null,"deadline_tier":"annual-july","deadline_note":"International round in July. Selection via national chemistry olympiad.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"Theoretical and practical chemistry: inorganic, organic, physical, analytical. A lab practical is half the score.","requirements":"Pre-university, under 20. Qualify through national olympiad.","apply_url":"https://www.ichoscience.org/","source_url":"https://www.ichoscience.org/","tags":["chemistry","lab","competition","international","selection"],"source_type":"verified"},{"id":"ioi","slug":"international-olympiad-informatics","title":"International Olympiad in Informatics (IOI)","category":"olympiad","direction":["stem","cs","informatics"],"format":"offline","deadline":null,"deadline_tier":"annual-august","deadline_note":"IOI 2026 hosted by Uzbekistan, August 9–16. Selection via national informatics olympiad.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"Algorithmic programming competition. Two five-hour sessions of competitive programming problems, scored on correctness and efficiency.","requirements":"Pre-university, under 20. Qualify through national informatics olympiad.","apply_url":"https://ioinformatics.org/","source_url":"https://ioinformatics.org/","tags":["programming","algorithms","cs","competition","international","selection"],"source_type":"verified"},{"id":"ibo","slug":"international-biology-olympiad","title":"International Biology Olympiad (IBO)","category":"olympiad","direction":["stem","science","biology"],"format":"offline","deadline":null,"deadline_tier":"annual-july","deadline_note":"International round in July. Selection via national biology olympiad.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"Theory and practical exams across animal, plant, molecular, cellular, and ecological biology.","requirements":"Pre-university, under 20. Qualify through national olympiad.","apply_url":"https://www.ibo-info.org/","source_url":"https://www.ibo-info.org/","tags":["biology","lab","competition","international","selection"],"source_type":"verified"},{"id":"bolashak","slug":"bolashak-international-scholarship","title":"Bolashak International Scholarship","category":"scholarship","direction":["stem","business","social","humanities"],"format":"hybrid","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Application window opens annually via test.bolashak.gov.kz. Exact dates vary by year.","grade_min":11,"grade_max":12,"cost":"free","region":"KZ","prestige":5,"description":"Kazakhstan government scholarship for study abroad at leading international universities. Covers tuition, living, and travel. The country's flagship international scholarship.","requirements":"KZ citizen. Bachelor's track requires admission to a top-200 university. Apply via test.bolashak.gov.kz.","apply_url":"https://www.bolashak.gov.kz/","source_url":"https://www.bolashak.gov.kz/","tags":["scholarship","government","study-abroad","bachelor","kz","prestige"],"source_type":"verified"},{"id":"nu-abay","slug":"nazarbayev-university-abay-kunanbayev-scholarship","title":"Nazarbayev University — Abay Kunanbayev Scholarship","category":"scholarship","direction":["stem","business","social","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Applications for fall intake open in spring via NU admissions.","grade_min":11,"grade_max":12,"cost":"free","region":"KZ","prestige":4,"description":"Merit scholarship at Nazarbayev University covering tuition, monthly stipend, and medical insurance for undergraduate study.","requirements":"Admission to NU undergraduate program. Awarded on academic merit.","apply_url":"https://nu.edu.kz/admissions/how-to-apply/foundation-undergraduate/financial-aid-end-scholarships/","source_url":"https://nu.edu.kz/admissions/how-to-apply/foundation-undergraduate/financial-aid-end-scholarships/","tags":["scholarship","university","bachelor","kz","astana","tuition"],"source_type":"verified"},{"id":"nu-foundation","slug":"nazarbayev-university-foundation-program","title":"Nazarbayev University Foundation (Year Zero) Program","category":"program","direction":["stem","business","social","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Foundation applications open in spring for fall entry.","grade_min":11,"grade_max":12,"cost":"paid","region":"KZ","prestige":3,"description":"A one-year pre-undergraduate foundation program at NU preparing students for English-medium degree study. Pathway for students needing academic preparation before a bachelor's.","requirements":"Grade 11 certificate. English proficiency. NU admissions exam.","apply_url":"https://nu.edu.kz/admissions/","source_url":"https://nu.edu.kz/admissions/","tags":["university","foundation","preparatory","kz","astana"],"source_type":"verified"},{"id":"kaznu-olympiad","slug":"kaznu-international-olympiad","title":"Al-Farabi KazNU International Subject Olympiad","category":"olympiad","direction":["stem","science","math","informatics"],"format":"online","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Rounds held in winter–spring. Registration via KazNU site.","grade_min":9,"grade_max":12,"cost":"free","region":"CIS","prestige":3,"description":"International subject olympiad hosted by Al-Farabi Kazakh National University. Open to CIS and international students across STEM and humanities subjects.","requirements":"Grade 9–12. School or self-nomination. Free to enter.","apply_url":"https://www.kaznu.kz/","source_url":"https://www.kaznu.kz/","tags":["olympiad","university","kz","cis","stem","humanities"],"source_type":"verified"},{"id":"enu-olympiad","slug":"enu-subject-olympiad","title":"L.N. Gumilyov ENU Subject Olympiad","category":"olympiad","direction":["stem","science","math","informatics","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Held in spring. Winners receive admission grants to ENU.","grade_min":10,"grade_max":12,"cost":"free","region":"KZ","prestige":3,"description":"Subject olympiad at L.N. Gumilyov Eurasian National University: math, physics, informatics, chemistry, biology, history. Winners receive admission grants.","requirements":"Grade 10–12. School nomination. Free entry.","apply_url":"https://enu.kz/","source_url":"https://enu.kz/","tags":["olympiad","university","kz","astana","grant","stem"],"source_type":"verified"},{"id":"nis-admission","slug":"nis-admission","title":"Nazarbayev Intellectual Schools (NIS) Admission","category":"program","direction":["stem","science","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-summer","deadline_note":"Admission exams held in summer for the following academic year.","grade_min":7,"grade_max":10,"cost":"free","region":"KZ","prestige":4,"description":"Competitive admission to Nazarbayev Intellectual Schools — selective KZ schools with enhanced STEM and language curricula. A common pathway into top universities.","requirements":"KZ students. Admission exam in math, science, language. Limited places.","apply_url":"https://nisdoo.edu.kz/","source_url":"https://nisdoo.edu.kz/","tags":["school","admission","kz","selective","stem"],"source_type":"verified"},{"id":"astana-it-summer","slug":"astana-it-summer-school","title":"Astana IT University Summer School","category":"summer_school","direction":["stem","cs"],"format":"hybrid","deadline":null,"deadline_tier":"annual-late-spring","deadline_note":"Applications close late spring for the summer cohort.","grade_min":9,"grade_max":11,"cost":"paid","region":"KZ","prestige":3,"description":"Two-week intensive: programming fundamentals, data structures, and an intro to machine learning. Scholarship places available for strong applicants.","requirements":"Grade 9–11. Basic math. Application form. Limited scholarship seats.","apply_url":"https://astanait.edu.kz/","source_url":"https://astanait.edu.kz/","tags":["summer","programming","cs","kz","astana","scholarship"],"source_type":"verified"},{"id":"kimep-summer","slug":"kimep-summer-program","title":"KIMEP University Summer Program","category":"summer_school","direction":["business","social","finance"],"format":"hybrid","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Applications open in spring for the summer session.","grade_min":10,"grade_max":11,"cost":"paid","region":"KZ","prestige":3,"description":"English-language summer programs in business, economics, and public policy at KIMEP University. A sample of university-level coursework.","requirements":"Grade 10–11. English proficiency helpful. Application form.","apply_url":"https://www.kimep.kz/","source_url":"https://www.kimep.kz/","tags":["summer","business","economics","kz","almaty","english"],"source_type":"verified"},{"id":"usaco","slug":"usa-computing-olympiad","title":"USA Computing Olympiad (USACO)","category":"olympiad","direction":["stem","cs","informatics"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Four online contests per season (Dec–Feb), open to anyone. No KZ restriction.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"Open online competitive programming contests. Bronze → Silver → Gold → Platinum divisions. Top performers are invited to a training camp. The most accessible serious algorithmic competition.","requirements":"Open to all pre-university students worldwide. Register online, free.","apply_url":"https://usaco.org/","source_url":"https://usaco.org/","tags":["programming","algorithms","cs","online","open","international"],"source_type":"verified"},{"id":"noc","slug":"national-olympiad-center-kz","title":"Republican Subject Olympiad (KZ National Selection)","category":"olympiad","direction":["stem","science","math","informatics","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"School → regional → republican rounds, October to April.","grade_min":8,"grade_max":11,"cost":"free","region":"KZ","prestige":4,"description":"The KZ national subject olympiad pathway. The route to international olympiads (IMO, IPhO, IChO, IOI). School round → regional → republican. Winners form national teams.","requirements":"Grade 8–11. Enter via school coordinator. Four rounds October–April.","apply_url":"https://edu.gov.kz/","source_url":"https://edu.gov.kz/","tags":["olympiad","national","selection","kz","school","stem","route"],"source_type":"verified"},{"id":"sat","slug":"sat-test","title":"SAT (College Board)","category":"test","direction":["humanities","stem"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Administered several times a year. Register via College Board.","grade_min":10,"grade_max":12,"cost":"paid","region":"global","prestige":4,"description":"Standardized test for US university admissions. Required or accepted by most US universities and many international programs. Digital format since 2024.","requirements":"Open registration. Fee applies; fee waivers available via schools.","apply_url":"https://satsuite.collegeboard.org/sat","source_url":"https://satsuite.collegeboard.org/sat","tags":["test","standardized","university","usa","admissions"],"source_type":"verified"},{"id":"ielts","slug":"ielts","title":"IELTS Academic","category":"test","direction":["humanities","languages"],"format":"offline","deadline":null,"deadline_tier":"recurring-weekly","deadline_note":"Test dates available most weeks. Book via official center.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":4,"description":"English proficiency test for university admissions in the UK, EU, Australia, and many US and KZ programs. Scores valid for two years.","requirements":"Open registration. Fee applies. Test at official centers.","apply_url":"https://www.ielts.org/","source_url":"https://www.ielts.org/","tags":["test","english","language","university","admissions"],"source_type":"verified"},{"id":"kenken","slug":"ken-kellogg-undergraduate-scholarship","title":"University Scholarship Search (general)","category":"scholarship","direction":["stem","business","social","humanities"],"format":"hybrid","deadline":null,"deadline_tier":"varies","deadline_note":"Each university sets its own scholarship deadline — verify per program.","grade_min":11,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"Most universities (NU, KBTU, KIMEP, SDU, KazNU, and international schools) publish merit and need-based scholarships on their admissions pages. Always check the official admissions site for the current year.","requirements":"Varies by university. Typically: admission offer + separate scholarship application.","apply_url":"https://www.4icu.org/reviews/universities-English/kazakhstan.htm","source_url":"https://www.4icu.org/reviews/universities-English/kazakhstan.htm","tags":["scholarship","university","merit","need-based","varies"],"source_type":"verified"},{"id":"nisc","slug":"research-internship-generic","title":"Research Internship (university lab)","category":"internship","direction":["stem","science"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Apply 3–6 months before the intended summer term.","grade_min":10,"grade_max":12,"cost":"free","region":"KZ","prestige":4,"description":"A short research placement in a university lab (NU, KazNU, ENU, KBTU). Email a professor whose work you understand, attach your transcript, propose a small project. The most underrated line on a university application.","requirements":"Grade 10–12. Strong subject grades. A professor willing to host you. Self-initiated.","apply_url":"https://nu.edu.kz/research","source_url":"https://nu.edu.kz/research","tags":["research","internship","lab","science","kz","self-initiated"],"source_type":"verified"},{"id":"robo-kz","slug":"kz-robotics-tournament","title":"National Robotics Competition (KZ)","category":"hackathon","direction":["stem","cs"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Regional rounds in spring, national final in late spring.","grade_min":7,"grade_max":11,"cost":"paid","region":"KZ","prestige":3,"description":"Annual robotics competition with categories for line-following, sumo, and freestyle builds. Team-based; build and program a robot to complete the season challenge.","requirements":"Grade 7–11. Team of 2–4. Kit or custom build. Entry fee per team.","apply_url":"https://robokz.kz/","source_url":"https://robokz.kz/","tags":["robotics","team","build","kz","engineering","cs"],"source_type":"verified"},{"id":"rsi","slug":"research-science-institute","title":"Research Science Institute (RSI)","source_type":"verified","category":"summer_school","direction":["stem","science","research"],"format":"offline","deadline":"2025-12-10","deadline_tier":"annual-december","deadline_note":"2026 cycle closed Dec 10, 2025. Next cycle opens ~Nov 2026.","grade_min":11,"grade_max":11,"cost":"free","region":"global","prestige":5,"description":"Six weeks of graduate-level STEM research at MIT under a scientist mentor, run by the Center for Excellence in Education — fully funded for ~100 rising seniors worldwide.","requirements":"Rising high school senior (grade 11 at application). Strong record in math/science. International students eligible. Highly competitive.","apply_url":"https://www.cee.org/programs/apply-rsi","source_url":"https://www.cee.org/programs/research-science-institute","tags":["research","stem","mit","summer","free","prestige","competitive"]},{"id":"promys","slug":"promys","title":"PROMYS (Program in Mathematics for Young Scientists)","source_type":"verified","category":"summer_school","direction":["stem","math","research"],"format":"offline","deadline":"2026-02-27","deadline_tier":"annual-february","deadline_note":"2026 cycle closed Feb 27. Financial aid form by Mar 15. Reopens ~January.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":5,"description":"Six-week intensive number-theory program at Boston University built around a daily problem set, proof-writing, and a first-year counselor-led exploration.","requirements":"High schooler passionate about math. Application includes a demanding problem set, transcript, recommendations. Substantial need-based aid.","apply_url":"https://promys.org/programs/promys/for-students/application/","source_url":"https://promys.org/programs/promys/for-students/","tags":["math","summer","proof","research","prestige","bu"]},{"id":"ross","slug":"ross-mathematics-program","title":"Ross Mathematics Program","source_type":"verified","category":"summer_school","direction":["stem","math","research"],"format":"offline","deadline":"2026-03-08","deadline_tier":"annual-march","deadline_note":"2026 cycle closed Mar 8. Reopens ~January.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":5,"description":"An intensive residential summer program centered on number theory through rigorous proof, founded in 1957 — a foundational experience for future mathematicians.","requirements":"Pre-college, ~15–18 years old. Algebra 2 required (no calculus). Admission by problem set, essays, recommendations. Need-based aid.","apply_url":"https://rossprogram.org/participants/","source_url":"https://rossprogram.org/","tags":["math","summer","proof","number-theory","prestige","research"]},{"id":"yygs","slug":"yale-young-global-scholars","title":"Yale Young Global Scholars (YYGS)","source_type":"verified","category":"summer_school","direction":["stem","business","social","humanities","science"],"format":"offline","deadline":"2026-01-07","deadline_tier":"annual-january","deadline_note":"2026 cycle closed (Early Action Oct 15, 2025; Regular Jan 7, 2026). Reopens Sept 2026.","grade_min":10,"grade_max":11,"cost":"paid","region":"global","prestige":5,"description":"Two-week interdisciplinary academic and leadership sessions at Yale across STEM, humanities, and global issues, with need-based financial aid available.","requirements":"16–18 years old by July 19, 2026. Application, transcript, essay, recommendation. $95 regular fee; tuition ~$7,000/session.","apply_url":"https://globalscholars.yale.edu/eligibility","source_url":"https://globalscholars.yale.edu/","tags":["summer","leadership","interdisciplinary","yale","prestige","aid"]},{"id":"isef","slug":"regeneron-isef","title":"Regeneron International Science & Engineering Fair (ISEF)","source_type":"verified","category":"contest","direction":["stem","science","research"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Qualify via a Society-affiliated regional fair (held ~Feb–Apr). ISEF 2026: Phoenix, May 9–15.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"The world's largest pre-college science fair: winners of Society-affiliated regional fairs compete with original research projects across 22 categories.","requirements":"Grades 9–12, under 20 by May 1 of the competition year. Cannot apply directly — qualify through an affiliated regional/state fair.","apply_url":"https://www.societyforscience.org/isef/","source_url":"https://www.societyforscience.org/isef/","tags":["science","research","fair","prestige","selection","project"]},{"id":"amc8","slug":"amc-8","title":"AMC 8 (MAA)","source_type":"verified","category":"olympiad","direction":["stem","math"],"format":"offline","deadline":null,"deadline_tier":"annual-january","deadline_note":"AMC 8 held Jan 22–28, 2026. Register via school/competition manager in fall.","grade_min":6,"grade_max":8,"cost":"paid","region":"global","prestige":3,"description":"A 40-minute, 25-question middle-school math competition run by the Mathematical Association of America — the entry point to the US math olympiad pathway.","requirements":"Grade 8 or below, under 14.5 years old on test day. Taken at a registered school or center.","apply_url":"https://maa.org/amcreg/","source_url":"https://maa.org/student-programs/amc/","tags":["math","competition","usa","global","entry","maa"]},{"id":"amc10","slug":"amc-10","title":"AMC 10 (MAA)","source_type":"verified","category":"olympiad","direction":["stem","math"],"format":"offline","deadline":null,"deadline_tier":"annual-november","deadline_note":"AMC 10 A: Nov 5, 2025; AMC 10 B: Nov 13, 2025. Register via school in early fall.","grade_min":8,"grade_max":10,"cost":"paid","region":"global","prestige":3,"description":"A 75-minute high-school math competition; high scorers qualify for the AIME — the next step toward USAMO.","requirements":"Grade 10 or below, under 17.5 years on test day. Taken at a registered center.","apply_url":"https://maa.org/amcreg/","source_url":"https://maa.org/student-programs/amc/","tags":["math","competition","usa","global","maa","qualifier"]},{"id":"amc12","slug":"amc-12","title":"AMC 12 / AIME / USAMO pathway (MAA)","source_type":"verified","category":"olympiad","direction":["stem","math"],"format":"offline","deadline":null,"deadline_tier":"annual-november","deadline_note":"AMC 12: Nov 5/13, 2025 → AIME: Feb 5 & 11, 2026 → USAMO/USAJMO: Mar 21–22, 2026.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":5,"description":"The MAA pathway from AMC 12 through the AIME invitational to the USAMO/USAJMO — the selection route for the USA International Mathematical Olympiad team.","requirements":"Grade 12 or below, under 19.5 years on test day. AIME by invitation (~top 5% of AMC 12); USAMO by combined index.","apply_url":"https://maa.org/maa-invitational-competitions/","source_url":"https://maa.org/student-programs/amc/","tags":["math","competition","usa","global","maa","selection","prestige"]},{"id":"math-kangaroo","slug":"math-kangaroo","title":"Math Kangaroo","source_type":"verified","category":"olympiad","direction":["stem","math"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Exam in mid-March (US: Mar 19, 2026). Registration opens ~Sept 15, closes Dec–Feb by country.","grade_min":1,"grade_max":12,"cost":"paid","region":"global","prestige":3,"description":"An international multiple-choice math contest held in 90+ countries on the same day — accessible, fun, and the most widely-taken school math competition in the world.","requirements":"Grades 1–12. Open registration (school or individual by country). Modest fee (~$25 US).","apply_url":"https://mathkangaroo.org/mks/registration/","source_url":"https://mathkangaroo.org/","tags":["math","competition","global","accessible","entry","school"]},{"id":"john-locke-essay","slug":"john-locke-essay-prize","title":"John Locke Essay Competition","source_type":"verified","category":"contest","direction":["humanities","social"],"format":"online","deadline":null,"deadline_tier":"annual-late-spring","deadline_note":"Questions released early in the year; free submission deadline typically late June. Check site for the current cycle.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":5,"description":"An international essay prize across philosophy, politics, economics, history, psychology, theology, and law — judged by Oxford academics, open to students 18 and under.","requirements":"18 or under on the submission deadline. Essays 2,000 words (max) in one of seven categories. Free to enter.","apply_url":"https://essaycompetition.johnlocke.com/","source_url":"https://essaycompetition.johnlocke.com/","tags":["essay","humanities","writing","oxford","prestige","global","free"]},{"id":"concord-review","slug":"the-concord-review","title":"The Concord Review","source_type":"verified","category":"contest","direction":["humanities"],"format":"online","deadline":null,"deadline_tier":"rolling-quarterly","deadline_note":"Rolling — Aug 1 (Winter), Nov 1 (Spring), Feb 1 (Summer), May 1 (Fall).","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"The only quarterly journal publishing academic history papers by secondary students — a recognized credential for humanities-focused applicants.","requirements":"Secondary-school author, sole author, paper completed while in high school. 5,000+ words, history research.","apply_url":"https://tcr.org/submit","source_url":"https://tcr.org/submit","tags":["history","essay","research","humanities","writing","publication"]},{"id":"ieo","slug":"international-economics-olympiad","title":"International Economics Olympiad (IEO)","source_type":"verified","category":"olympiad","direction":["finance","business","social"],"format":"offline","deadline":null,"deadline_tier":"annual-summer","deadline_note":"International round in July. Qualify through your country's national economics selection.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"An international olympiad across economics, finance, and business for high-school students, reached through each country's national selection.","requirements":"High school, ages 14–20. Team of up to five via national selection organization. No direct registration.","apply_url":"https://ieo-official.org/","source_url":"https://ieo-official.org/","tags":["economics","finance","business","olympiad","international","selection"]},{"id":"iol","slug":"international-linguistics-olympiad","title":"International Linguistics Olympiad (IOL)","source_type":"verified","category":"olympiad","direction":["humanities","languages"],"format":"offline","deadline":null,"deadline_tier":"annual-summer","deadline_note":"International round in July. Qualify through national/APLO selection.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"An olympiad where students solve puzzles about real languages — no prior linguistics required — reached through national or Asia-Pacific selection.","requirements":"Pre-university, under 20 on the first day of the Olympiad. Via national selection (no direct entry).","apply_url":"https://ioling.org/","source_url":"https://ioling.org/","tags":["linguistics","languages","olympiad","puzzles","international","selection"]},{"id":"iej-astro","slug":"international-astronomy-olympiad","title":"International Olympiad on Astronomy and Astrophysics (IOAA)","source_type":"verified","category":"olympiad","direction":["stem","science"],"format":"offline","deadline":null,"deadline_tier":"annual-autumn","deadline_note":"International round typically in autumn. Qualify via national astronomy selection.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"An international olympiad in astronomy and astrophysics: theory, data analysis, and a practical observation round.","requirements":"Pre-university, under 20. National team selection required. No direct entry.","apply_url":"https://www.ioaaofficial.org/","source_url":"https://www.ioaaofficial.org/","tags":["astronomy","astrophysics","olympiad","international","selection","science"]},{"id":"igeo","slug":"international-geography-olympiad","title":"International Geography Olympiad (iGeo)","source_type":"verified","category":"olympiad","direction":["social","humanities","science"],"format":"offline","deadline":null,"deadline_tier":"annual-summer","deadline_note":"International round in summer. Qualify via national geography selection.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"An international olympiad testing physical, economic, and human geography through written, multimedia, and fieldwork rounds.","requirements":"Students 15–19, via national team selection. No direct entry.","apply_url":"https://www.geoolympiad.org/","source_url":"https://www.geoolympiad.org/","tags":["geography","olympiad","international","selection","social"]},{"id":"spc-cs50","slug":"cs50-introduction-computer-science","title":"CS50x (Harvard, online, free)","source_type":"verified","category":"program","direction":["stem","cs"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced; a new cohort opens each calendar year on edX.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"Harvard's introductory computer science course, free and online — problem sets in C, Python, SQL, and a final project, with a verified certificate option.","requirements":"Open to all, no prerequisites. Optional verified certificate (~$90); audit free.","apply_url":"https://cs50.harvard.edu/x/","source_url":"https://cs50.harvard.edu/x/","tags":["cs","programming","online","free","self-paced","harvard","course"]},{"id":"kaggle","slug":"kaggle-competitions","title":"Kaggle Competitions","source_type":"verified","category":"contest","direction":["stem","cs","science"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Competitions run year-round; each has its own deadline.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"A platform of real-world data-science and machine-learning competitions with public leaderboards — the standard place to build a portfolio in ML.","requirements":"Open to all. Free. Learn track and featured competitions for beginners and experts.","apply_url":"https://www.kaggle.com/competitions","source_url":"https://www.kaggle.com/competitions","tags":["ml","data-science","cs","online","free","portfolio","competition"]},{"id":"google-codejam","slug":"google-competitive-programming","title":"Google Competitive Programming (Code Jam / Kick Start archive)","source_type":"verified","category":"contest","direction":["stem","cs"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Code Jam has concluded; archived problems remain. Google runs seasonal contests — check the site.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"Google's archive of algorithmic programming contests — years of graded problems with editorials, a gold-standard training ground for competitive programmers.","requirements":"Open to all. Free. Past problems permanently available for practice.","apply_url":"https://codingcompetitions.withgoogle.com/codejam","source_url":"https://codingcompetitions.withgoogle.com/codejam","tags":["programming","algorithms","cs","online","free","google","archive"]},{"id":"cboe-codechef","slug":"codeforces","title":"Codeforces Rounds","source_type":"verified","category":"contest","direction":["stem","cs"],"format":"online","deadline":null,"deadline_tier":"recurring-weekly","deadline_note":"Rated rounds run roughly weekly, year-round.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"Regularly scheduled rated competitive-programming rounds with divisions for every level — the most active contest platform alongside USACO.","requirements":"Open to all. Free. Divisions from beginner to elite.","apply_url":"https://codeforces.com/contests","source_url":"https://codeforces.com/","tags":["programming","algorithms","cs","online","free","rated","recurring"]},{"id":"aops","slug":"art-of-problem-solving","title":"Art of Problem Solving (AoPS) — Alcumus & community","source_type":"verified","category":"program","direction":["stem","math","cs"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced, always open.","grade_min":6,"grade_max":12,"cost":"freemium","region":"global","prestige":3,"description":"The standard out-of-school math training ecosystem — free adaptive problem sets (Alcumus), paid courses, and the forum where olympiad students converge.","requirements":"Open to all. Alcumus free; courses paid.","apply_url":"https://artofproblemsolving.com/alcumus","source_url":"https://artofproblemsolving.com/","tags":["math","training","online","community","school","cs","freemium"]},{"id":"ssp","slug":"summer-science-program","title":"Summer Science Program (SSP)","source_type":"verified","category":"summer_school","direction":["stem","science","research"],"format":"offline","deadline":null,"deadline_tier":"annual-february","deadline_note":"Applications open Dec, close early Feb. Need-based aid available.","grade_min":10,"grade_max":11,"cost":"paid","region":"global","prestige":5,"description":"A 39-day residential research program in astrophysics, biochem, or genomics where teams complete an original measurement-based project — one of the most respected pre-college science experiences.","requirements":"Rising seniors (and some juniors). Strong STEM record. Need-based aid; the program is run by a nonprofit.","apply_url":"https://summer-science.org/admissions/","source_url":"https://summer-science.org/","tags":["science","research","summer","astrophysics","prestige","aid"]},{"id":"cswl","slug":"cswl-clarke-workshop","title":"Kenyon Review Young Writers Workshop","source_type":"verified","category":"summer_school","direction":["humanities"],"format":"hybrid","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Applications open winter, close spring, for the summer cohort.","grade_min":10,"grade_max":12,"cost":"paid","region":"global","prestige":4,"description":"A week-long generative writing workshop at Kenyon College for intellectually curious high-schoolers — a recognized creative-writing credential.","requirements":"Ages 16–18. Application with writing sample. Paid; limited aid.","apply_url":"https://kenyonreview.org/workshops/young-writers/","source_url":"https://kenyonreview.org/workshops/young-writers/","tags":["writing","humanities","summer","creative","workshop","kenyon"]},{"id":"tasp","slug":"telluride-association-summer-seminars","title":"Telluride Association Summer Seminar (TASS)","source_type":"verified","category":"summer_school","direction":["humanities","social"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open late fall, close early January. Fully free.","grade_min":10,"grade_max":11,"cost":"free","region":"global","prestige":5,"description":"A free six-week seminar in humanities and social sciences for intellectually curious rising seniors, run by the Telluride Association — one of the most selective free summer programs.","requirements":"Rising senior (~grade 10–11 at application). Free for all admitted. Highly competitive.","apply_url":"https://www.tellurideassociation.org/programs/tass/","source_url":"https://www.tellurideassociation.org/programs/tass/","tags":["humanities","social","summer","free","prestige","seminar","selective"]},{"id":"nhd","slug":"national-history-day","title":"National History Day (NHD)","source_type":"verified","category":"contest","direction":["humanities"],"format":"hybrid","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Regional contests in spring → state → national June. Register via school.","grade_min":6,"grade_max":12,"cost":"paid","region":"global","prestige":3,"description":"An annual research contest where students produce a paper, exhibit, documentary, website, or performance on a historical theme, judged at regional, state, and national levels.","requirements":"Middle and high school divisions. Enter via school or as individual. Modest entry fee.","apply_url":"https://nhd.org/compete/","source_url":"https://nhd.org/","tags":["history","humanities","research","contest","school","project"]},{"id":"fbla","slug":"future-business-leaders-america","title":"Future Business Leaders of America (FBLA) competitive events","source_type":"verified","category":"contest","direction":["business","finance"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Regional/section events winter → state spring → national summer. Register via a school chapter.","grade_min":9,"grade_max":12,"cost":"paid","region":"usa","prestige":2,"description":"A network of high-school business chapters with competitive events across business, finance, marketing, and tech — run via school chapters in the US.","requirements":"Member of a school FBLA chapter. Paid membership. US-focused.","apply_url":"https://www.fbla-pbl.org/fbla/competitive-events/","source_url":"https://www.fbla-pbl.org/fbla/","tags":["business","finance","competition","school","usa","chapter"]},{"id":"duke-tip","slug":"duke-tip-summer-studies","title":"Duke TIP / Duke Precollege","source_type":"verified","category":"summer_school","direction":["stem","humanities","social"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Applications open winter, close spring for summer programs.","grade_min":9,"grade_max":11,"cost":"paid","region":"global","prestige":3,"description":"Duke University's precollege summer programs offering credit-bearing courses to academically ready high-schoolers across STEM, humanities, and social sciences.","requirements":"Grade 9–11. Application with transcript. Paid; limited aid.","apply_url":"https://precollege.duke.edu/","source_url":"https://precollege.duke.edu/","tags":["summer","university","stem","humanities","duke","course","paid"]},{"id":"scholastic-awa","slug":"scholastic-art-writing-awards","title":"Scholastic Art & Writing Awards","source_type":"verified","category":"contest","direction":["humanities","arts"],"format":"online","deadline":"2025-12-01","deadline_tier":"annual-december","deadline_note":"Regional deadlines begin ~Dec 1; varies by region. Check your region page.","grade_min":7,"grade_max":12,"cost":"paid","region":"usa","prestige":5,"description":"The longest-running recognition program for creative teens in the U.S. and Canada — art and writing across dozens of categories, with portfolio scholarships up to $12,500 for seniors.","requirements":"Grades 7–12, ages 13+, U.S./Canada. Individual works $10, portfolios $30; fee waivers available.","apply_url":"https://www.artandwriting.org/awards/how-to-enter/","source_url":"https://www.artandwriting.org/","tags":["art","writing","creative","scholarship","usa","canada","prestige","contest"]},{"id":"youngarts","slug":"youngarts-national-arts-competition","title":"YoungArts National Arts Competition","source_type":"verified","category":"contest","direction":["humanities","arts"],"format":"online","deadline":"2025-10-08","deadline_tier":"annual-october","deadline_note":"2026 cycle closed Oct 8, 2025. 2027 opens Summer 2026.","grade_min":10,"grade_max":12,"cost":"paid","region":"usa","prestige":5,"description":"A national competition across ten arts disciplines — cash awards, grants, residencies, and U.S. Presidential Scholar in the Arts nomination for winners.","requirements":"Ages 15–18, or grades 10–12, on Dec 1 of the application year. U.S.-based. Discipline-specific portfolio/audition requirements.","apply_url":"https://youngarts.org/apply/","source_url":"https://youngarts.org/","tags":["art","music","writing","film","dance","usa","prestige","scholarship"]},{"id":"congressional-art","slug":"congressional-art-competition","title":"Congressional Art Competition (U.S.)","source_type":"verified","category":"contest","direction":["humanities","arts"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Submissions via your U.S. Representative's office, typically due in spring.","grade_min":9,"grade_max":12,"cost":"free","region":"usa","prestige":3,"description":"An annual visual-arts competition for U.S. high-schoolers run through each congressional district — the winning work hangs in the U.S. Capitol for a year.","requirements":"U.S. high-school students. Submit through your Representative's office. Free to enter.","apply_url":"https://www.house.gov/educators-and-students/congressional-art-competition","source_url":"https://www.house.gov/educators-and-students/congressional-art-competition","tags":["art","usa","government","capitol","contest","free"]},{"id":"red-cross-youth","slug":"red-cross-youth-volunteer","title":"American Red Cross Youth Volunteer","source_type":"verified","category":"volunteer","direction":["social"],"format":"offline","deadline":null,"deadline_tier":"rolling","deadline_note":"Year-round; start or join a Red Cross Club at school anytime.","grade_min":8,"grade_max":12,"cost":"free","region":"usa","prestige":2,"description":"Youth volunteering through Red Cross Clubs and local chapters — blood drives, disaster preparedness, international humanitarian law instruction, and community service hours.","requirements":"Middle and high school. Join a club or local chapter. Free. Service hours documented.","apply_url":"https://www.redcross.org/volunteer/become-a-volunteer/youth-opportunities.html","source_url":"https://www.redcross.org/red-cross-youth/","tags":["volunteer","social","community","usa","club","free","service"]},{"id":"un-online-volunteers","slug":"un-online-volunteers","title":"UN Volunteers (online)","source_type":"verified","category":"volunteer","direction":["social","cs"],"format":"online","deadline":null,"deadline_tier":"rolling","deadline_note":"Tasks posted year-round; apply to individual opportunities.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"Online volunteering for UN agencies and NGOs — translation, research, design, writing tasks supporting development projects worldwide, open to skilled volunteers.","requirements":"Open to all ages with relevant skills. Free. Choose tasks that fit your time.","apply_url":"https://www.unv.org/","source_url":"https://onlinevolunteering.org/","tags":["volunteer","online","global","un","social","free","translation","research"]},{"id":"habitat-youth","slug":"habitat-for-humanity-youth-programs","title":"Habitat for Humanity Youth Programs","source_type":"verified","category":"volunteer","direction":["social"],"format":"offline","deadline":null,"deadline_tier":"rolling","deadline_note":"Year-round; sign up via a local Habitat affiliate.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":2,"description":"Build homes alongside future homeowners through a local Habitat affiliate — a well-recognized, hands-on service commitment for high-schoolers.","requirements":"Age 16+ for most build sites (varies). Register through a local affiliate. Free.","apply_url":"https://www.habitat.org/volunteer/youth-programs","source_url":"https://www.habitat.org/volunteer","tags":["volunteer","social","build","community","global","free","service"]},{"id":"jackson-lab-ssp","slug":"jackson-laboratory-summer-student-program","title":"The Jackson Laboratory — Summer Student Program","source_type":"verified","category":"internship","direction":["stem","science","research"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open late fall, close ~Jan–Feb for the summer cohort.","grade_min":11,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"A genetics and genomics research immersion at a leading biomedical institute — students join a lab, conduct original research, and present findings; many alumni are now senior scientists.","requirements":"Grade 11–12 / undergrad. Competitive. Stipend available. Some tracks for high school.","apply_url":"https://www.jax.org/education-and-learning/high-school-students-and-undergraduates","source_url":"https://www.jax.org/education-and-learning/high-school-students-and-undergraduates","tags":["research","genetics","biomedical","internship","lab","summer","prestige"]},{"id":"broad-ssp","slug":"broad-summer-scholars-program","title":"Broad Summer Scholars Program (BSSP)","source_type":"verified","category":"internship","direction":["stem","science","research","cs"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open winter, close early spring for the summer cohort.","grade_min":11,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"Six weeks of genomics research at the Broad Institute (MIT/Harvard) — students work on a real scientific project alongside Broad scientists.","requirements":"Grade 11–12, 16+ years old, within commuting distance of Cambridge, MA. Strong science record. Competitive. Stipend.","apply_url":"https://www.broadinstitute.org/partnerships/education/k-12-outreach/broad-summer-scholars-program","source_url":"https://www.broadinstitute.org/partnerships/education/k-12-outreach/broad-summer-scholars-program","tags":["research","genomics","biomedical","internship","broad","summer","cs","prestige"]},{"id":"cosmos","slug":"cosmos-california-math-science-summer-school","title":"COSMOS (California State Summer School for Math & Science)","source_type":"verified","category":"summer_school","direction":["stem","science","math","cs"],"format":"offline","deadline":null,"deadline_tier":"annual-february","deadline_note":"Applications open winter, close early February.","grade_min":8,"grade_max":11,"cost":"paid","region":"usa","prestige":4,"description":"A four-week residential STEM program at four UC campuses — clusters of advanced math, science, and engineering topics taught by UC faculty.","requirements":"Grades 8–11, strong STEM record. California residents prioritized; limited out-of-state. Paid; financial aid available.","apply_url":"https://cosmos-ucop.ucdavis.edu/app/main/","source_url":"https://cosmos-ucop.ucdavis.edu/","tags":["stem","summer","research","uc","california","science","aid"]},{"id":"bu-rise","slug":"bu-research-internship-stem-experience","title":"BU RISE (Research in Science & Engineering)","source_type":"verified","category":"internship","direction":["stem","science","research"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open winter, close mid-February for summer.","grade_min":11,"grade_max":11,"cost":"paid","region":"global","prestige":4,"description":"A six-week Boston University internship where rising seniors do university lab research under a faculty mentor, with an internship or practicum track.","requirements":"Rising senior (grade 11 at application). Strong STEM record. Paid; limited aid.","apply_url":"https://www.bu.edu/summer/high-school-programs/rise-internship-practicum/","source_url":"https://www.bu.edu/summer/high-school-programs/rise-internship-practicum/","tags":["research","stem","internship","bu","summer","lab"]},{"id":"cdc-disease-camp","slug":"cdc-museum-disease-detective-camp","title":"CDC Museum Disease Detective Camp","source_type":"verified","category":"summer_school","direction":["stem","science","social"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open winter, close early spring.","grade_min":10,"grade_max":11,"cost":"free","region":"usa","prestige":3,"description":"A one-week day camp at the CDC in Atlanta exposing high-schoolers to public health, epidemiology, and the work of disease detectives.","requirements":"Grades 10–11 (at application). Atlanta-based, free, competitive lottery.","apply_url":"https://www.cdc.gov/museum/camp/","source_url":"https://www.cdc.gov/museum/camp/","tags":["public-health","epidemiology","cdc","summer","free","science","usa"]},{"id":"first-robotics","slug":"first-robotics-competition","title":"FIRST Robotics Competition (FRC)","source_type":"verified","category":"contest","direction":["stem","cs","science"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Season runs Jan–Apr; team registration in fall.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":4,"description":"Teams design, build, and program an industrial-sized robot in six weeks to compete in a new game each season — the largest school-age robotics program worldwide, with millions in scholarships available.","requirements":"Grades 9–12. Join or start a team. Team registration fee; significant scholarships for alumni.","apply_url":"https://www.firstinspires.org/robotics/frc","source_url":"https://www.firstinspires.org/robotics/frc","tags":["robotics","team","build","programming","stem","global","scholarship"]},{"id":"breakthrough-jc","slug":"breakthrough-junior-challenge","title":"Breakthrough Junior Challenge","source_type":"verified","category":"contest","direction":["stem","science","cs"],"format":"online","deadline":null,"deadline_tier":"annual-summer","deadline_note":"Submissions open spring, close ~June 25. Peer review follows.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":4,"description":"A global contest where students create a short video explaining a challenging science or math concept — the winner receives a $250,000 scholarship and a lab for their school.","requirements":"Ages 13–17. Free. Original video (≤2:00). Online submission + peer review.","apply_url":"https://breakthroughjuniorchallenge.org/","source_url":"https://breakthroughjuniorchallenge.org/","tags":["science","video","scholarship","global","free","stem","contest","prestige"]},{"id":"dna-day-essay","slug":"ashg-dna-day-essay-contest","title":"ASHG DNA Day Essay Contest","source_type":"verified","category":"contest","direction":["stem","science","humanities"],"format":"online","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Submissions open fall, close early March.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"An essay contest from the American Society of Human Genetics exploring a genetics question — cash prizes for top essays and their teachers.","requirements":"Grades 9–12 worldwide. Free. 750-word essay on the annual prompt.","apply_url":"https://www.ashg.org/discover-and-learn/dna-day-essay-contest/","source_url":"https://www.ashg.org/discover-and-learn/dna-day-essay-contest/","tags":["genetics","essay","science","writing","global","free","contest"]},{"id":"wsc","slug":"world-scholars-cup","title":"World Scholar's Cup","source_type":"verified","category":"contest","direction":["humanities","social","science"],"format":"hybrid","deadline":null,"deadline_tier":"annual-rounds","deadline_note":"Regional rounds year-round → global round → Tournament of Champions at Yale.","grade_min":6,"grade_max":12,"cost":"paid","region":"global","prestige":3,"description":"A team academic competition across debate, writing, a scholars' bowl, and a collaborative puzzle — a global community culminating at the Yale Tournament of Champions.","requirements":"Junior (≤14) and Senior divisions. Teams of three. Paid registration; regional rounds worldwide.","apply_url":"https://www.scholarscup.org/","source_url":"https://www.scholarscup.org/","tags":["debate","writing","team","global","humanities","yale","contest"]},{"id":"uwc-short-courses","slug":"uwc-short-courses","title":"United World Colleges (UWC) Short Courses","source_type":"verified","category":"summer_school","direction":["social","humanities","leadership"],"format":"offline","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Applications open winter, close spring — varies by individual course.","grade_min":8,"grade_max":12,"cost":"paid","region":"global","prestige":4,"description":"Short residential courses on sustainability, leadership, and global issues across UWC campuses (USA, ISAK Japan, Costa Rica, and more) — a sampler of the UWC movement.","requirements":"Typically ages 13–17 (varies by course). English proficiency. Paid; scholarships by course.","apply_url":"https://uwc.org/short-courses/","source_url":"https://uwc.org/short-courses/","tags":["leadership","global","sustainability","summer","uwc","international","social"]},{"id":"stanford-precollegiate","slug":"stanford-precollegiate-summer-institutes","title":"Stanford Pre-Collegiate Summer Institutes","source_type":"verified","category":"summer_school","direction":["stem","humanities","social","science"],"format":"online","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open winter, close early spring.","grade_min":9,"grade_max":11,"cost":"paid","region":"global","prestige":4,"description":"Online intensive courses across STEM, humanities, and social science taught by Stanford instructors — single-subject depth in a small cohort.","requirements":"Grades 9–11. Application with transcript and essay. Paid; need-based aid.","apply_url":"https://summerinstitutes.spcs.stanford.edu/","source_url":"https://spcs.stanford.edu/","tags":["summer","stanford","stem","humanities","online","course","aid"]},{"id":"cotton-columbia-sp","slug":"columbia-scholastic-press-association","title":"Columbia Scholastic Press Association (CSPA) contests","source_type":"verified","category":"contest","direction":["humanities"],"format":"hybrid","deadline":null,"deadline_tier":"annual-fall","deadline_note":"Critique/awards cycle opens fall; convention in spring at Columbia.","grade_min":9,"grade_max":12,"cost":"paid","region":"global","prestige":3,"description":"Awards and critiques for student publications — yearbooks, newspapers, magazines, digital media — run by Columbia University's journalism educators.","requirements":"Student publications at schools worldwide. Membership/entry fee.","apply_url":"https://cspa.columbia.edu/","source_url":"https://cspa.columbia.edu/","tags":["journalism","writing","publication","media","columbia","humanities"]},{"id":"nsli-y","slug":"nsli-y-summer-language","title":"NSLI-Y (U.S. State Dept. overseas language program)","source_type":"verified","category":"program","direction":["languages","humanities","social"],"format":"offline","deadline":null,"deadline_tier":"annual-fall","deadline_note":"Applications open late summer, close ~early November.","grade_min":9,"grade_max":12,"cost":"free","region":"usa","prestige":5,"description":"A fully funded U.S. government program sending high-schoolers abroad to study critical languages (Arabic, Mandarin, Korean, Russian, Hindi, and more) for a summer or academic year.","requirements":"U.S. citizens, grades 9–12, 15–18 at start. Fully funded. Competitive.","apply_url":"https://nsliy.state.gov/","source_url":"https://nsliy.state.gov/","tags":["language","study-abroad","free","government","usa","prestige","global"]},{"id":"yes-program","slug":"kennedy-lugar-yes-abroad","title":"Kennedy-Lugar YES Abroad (U.S.)","source_type":"verified","category":"program","direction":["languages","social","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-fall","deadline_note":"Applications open fall, close ~December.","grade_min":9,"grade_max":11,"cost":"free","region":"usa","prestige":5,"description":"A fully funded U.S. State Department program placing American high-schoolers with host families for an academic year in a YES-country — deep cultural immersion.","requirements":"U.S. citizens, grades 9–11. Fully funded (covers travel, school, living). Competitive.","apply_url":"https://yes-abroad.org/","source_url":"https://yes-abroad.org/","tags":["study-abroad","exchange","free","government","usa","immersion","prestige"]},{"id":"pico-ctf","slug":"picoctf-cybersecurity","title":"picoCTF (cybersecurity competition)","source_type":"verified","category":"contest","direction":["stem","cs"],"format":"online","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Annual competition runs ~Feb–Mar; practice problems always open.","grade_min":6,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"A free, beginner-friendly cybersecurity capture-the-flag built by Carnegie Mellon — the standard entry point for learning security through hands-on challenges.","requirements":"Middle and high school. Free. Practice problems always available.","apply_url":"https://picoctf.org/","source_url":"https://picoctf.org/","tags":["cybersecurity","cs","ctf","cmu","online","free","global","entry"]},{"id":"hd-pf-ace-it","slug":"ace-mentor-program","title":"ACE Mentor Program (architecture, construction, engineering)","source_type":"verified","category":"internship","direction":["stem","social"],"format":"hybrid","deadline":null,"deadline_tier":"annual-fall","deadline_note":"Teams form in fall; scholarships awarded in spring.","grade_min":9,"grade_max":12,"cost":"free","region":"usa","prestige":3,"description":"A free after-school mentorship where industry professionals guide teams of high-schoolers through a real design project — plus scholarships for graduating seniors.","requirements":"Grades 9–12 in an ACE-affiliated area. Free. Scholarships for seniors.","apply_url":"https://www.acementor.org/","source_url":"https://www.acementor.org/","tags":["engineering","architecture","mentorship","usa","free","scholarship","social"]},{"id":"walmart-vision","slug":"bank-of-america-student-leaders","title":"Bank of America Student Leaders","source_type":"verified","category":"internship","direction":["business","social"],"format":"offline","deadline":null,"deadline_tier":"annual-winter","deadline_note":"Applications open fall, close mid-January.","grade_min":11,"grade_max":12,"cost":"free","region":"usa","prestige":4,"description":"A paid summer internship placing juniors and seniors at a local nonprofit, plus a week-long leadership summit in Washington, D.C.","requirements":"Juniors/seniors in eligible U.S. markets. Paid. Competitive.","apply_url":"https://about.bankofamerica.com/en/making-an-impact/student-leaders","source_url":"https://about.bankofamerica.com/en/making-an-impact/student-leaders","tags":["internship","leadership","nonprofit","business","paid","usa","social"]},{"id":"nshss-cia","slug":"nshss-scholarships","title":"NSHSS Scholarships (various)","source_type":"verified","category":"scholarship","direction":["stem","humanities","business","social"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Multiple scholarship cycles year-round — check each one's deadline.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":2,"description":"The National Society of High School Scholars runs dozens of scholarship cycles across academics, leadership, STEM, and the arts — open to members worldwide.","requirements":"NSHSS member (by academic achievement). Varies by scholarship. Most free to apply.","apply_url":"https://www.nshss.org/scholarships/","source_url":"https://www.nshss.org/","tags":["scholarship","academic","global","leadership","stem","arts","recurring"]},{"id":"gap-year-project","slug":"thinking-beyond-borders","title":"Thinking Beyond Borders (gap year)","source_type":"verified","category":"program","direction":["social","languages","humanities"],"format":"offline","deadline":null,"deadline_tier":"annual-rounds","deadline_note":"Rolling admissions with rounds through spring.","grade_min":12,"grade_max":12,"cost":"paid","region":"global","prestige":3,"description":"A structured gap-year program traveling across countries to study global issues through homestays, service, and academic seminars.","requirements":"Graduating senior. Paid; scholarships and financial aid available.","apply_url":"https://thinkingbeyondborders.org/","source_url":"https://thinkingbeyondborders.org/","tags":["gap-year","global","social","travel","immersion","leadership"]},{"id":"opencourseware-mit","slug":"mit-opencourseware-high-school","title":"MIT OpenCourseWare (high-school highlights)","source_type":"verified","category":"program","direction":["stem","science","math","cs"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced, always open.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"Free MIT course materials — including a curated high-school highlights section — for self-motivated students who want to study ahead in math, physics, biology, or CS.","requirements":"Open to all. Free. No registration required; no certificate.","apply_url":"https://ocw.mit.edu/high-school/","source_url":"https://ocw.mit.edu/","tags":["stem","online","free","self-paced","mit","course","math","physics","cs"]},{"id":"khan-academy-sat","slug":"khan-academy-sat-prep","title":"Khan Academy Official Digital SAT Prep","source_type":"verified","category":"program","direction":["humanities","stem"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced, always open; free forever.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"The College Board's official, free digital SAT prep — personalized practice, full-length tests, and skill tracking built with Khan Academy.","requirements":"Open to all. Free. Link a College Board account for personalized plan.","apply_url":"https://www.khanacademy.org/test-prep/v2-sat","source_url":"https://www.khanacademy.org/test-prep/v2-sat","tags":["sat","test","prep","online","free","self-paced","college-board"]},{"id":"ext-scholarshipscorner","slug":"external-scholarshipscorner","title":"Scholarships Corner (aggregator)","source_type":"external","category":"scholarship","direction":["stem","business","social","humanities"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Aggregator — rolling list of opportunities, each with its own deadline.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":2,"description":"A widely-used aggregator of international scholarships, summer programs, and competitions — a starting point to browse beyond this catalog.","requirements":"Browse the site for current listings. We link to the source, not to individual programs.","apply_url":"https://scholarshipscorner.website/","source_url":"https://scholarshipscorner.website/","tags":["scholarship","aggregator","listing","global","external"]},{"id":"ext-opportunitydesk","slug":"external-opportunitydesk","title":"Opportunity Desk (aggregator)","source_type":"external","category":"scholarship","direction":["stem","business","social","humanities"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Aggregator — rolling list; each opportunity has its own deadline.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":2,"description":"An aggregator of conferences, scholarships, internships, and awards for students worldwide — useful for finding programs not yet in this catalog.","requirements":"Browse the site for current listings.","apply_url":"https://opportunitydesk.org/","source_url":"https://opportunitydesk.org/","tags":["scholarship","aggregator","listing","global","external","conference"]},{"id":"ext-youthop","slug":"external-youthop","title":"Youth Opportunities (aggregator)","source_type":"external","category":"program","direction":["stem","business","social","humanities","languages"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Aggregator — rolling list.","grade_min":8,"grade_max":12,"cost":"free","region":"global","prestige":2,"description":"A searchable aggregator of youth-focused programs, conferences, and competitions across academic and extracurricular categories.","requirements":"Browse the site for current listings.","apply_url":"https://www.youthop.com/","source_url":"https://www.youthop.com/","tags":["aggregator","listing","global","youth","external","conference"]},{"id":"ext-meedu","slug":"external-meedu-kz","title":"KZ education aggregators (MoES, edu.gov.kz)","source_type":"external","category":"program","direction":["stem","humanities","social"],"format":"online","deadline":null,"deadline_tier":"recurring-monthly","deadline_note":"Government listings updated year-round.","grade_min":8,"grade_max":12,"cost":"free","region":"KZ","prestige":3,"description":"The Kazakhstan Ministry of Education's portal — official source for olympiad schedules, grant cycles, and admission rules; always verify KZ deadlines here.","requirements":"Browse the official portal for current announcements.","apply_url":"https://edu.gov.kz/","source_url":"https://edu.gov.kz/","tags":["kz","government","official","aggregator","olympiad","grant","external"]},{"id":"ext-coursera-honors","slug":"external-coursera-courses","title":"Coursera / edX free courses (audit)","source_type":"external","category":"program","direction":["stem","business","cs","humanities","science"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced; most courses can be audited free.","grade_min":9,"grade_max":12,"cost":"freemium","region":"global","prestige":2,"description":"Thousands of university courses audit-able for free — search by subject to study ahead with materials from top universities.","requirements":"Open to all. Free to audit; certificate optional/paid.","apply_url":"https://www.coursera.org/","source_url":"https://www.edx.org/","tags":["online","course","university","free","audit","global","external"]},{"id":"ext-mit-ocw-full","slug":"external-mit-ocw","title":"MIT OpenCourseWare (full catalog)","source_type":"external","category":"program","direction":["stem","science","math","cs","business"],"format":"online","deadline":null,"deadline_tier":"rolling-self-paced","deadline_note":"Self-paced, always open.","grade_min":9,"grade_max":12,"cost":"free","region":"global","prestige":3,"description":"Free materials for 2,500+ MIT courses — go beyond the high-school highlights into the full undergraduate catalog at your own pace.","requirements":"Open to all. Free.","apply_url":"https://ocw.mit.edu/search/","source_url":"https://ocw.mit.edu/","tags":["online","course","mit","free","self-paced","external","stem"]},{"id":"ext-kz-edfinance","slug":"external-financial-aid-kz","title":"KZ university financial-aid pages (portal list)","source_type":"external","category":"scholarship","direction":["stem","business","social","humanities"],"format":"online","deadline":null,"deadline_tier":"annual-spring","deadline_note":"Each university sets its own scholarship deadline — verify per school.","grade_min":11,"grade_max":12,"cost":"free","region":"KZ","prestige":3,"description":"A directory of KZ universities (NU, KBTU, KIMEP, SDU, KazNU, AITU…) — each admissions page lists its own scholarships; always check the official site for the current cycle.","requirements":"Browse the directory; verify on each university's admissions page.","apply_url":"https://www.4icu.org/reviews/universities-English/kazakhstan.htm","source_url":"https://www.4icu.org/reviews/universities-English/kazakhstan.htm","tags":["scholarship","kz","university","directory","external","aid"]}];
+</script>
+<!--BUILT-END-->
+<div class="bg-dots"></div>
+<div class="bg-vignette"></div>
+<div class="progress" id="progress"></div>
+
+<div class="corner-tl"><span class="corner-dot"></span>MENTORIA HUB · OPPORTUNITIES</div>
+<div class="corner-br">SYS.SEARCH · v1.0 · <span id="cntCorner">0</span> ROWS</div>
+
+<main>
+  <!-- HERO + SEARCH -->
+  <section class="hero">
+    <div class="meta-row">
+      <span class="meta-id">MD-01</span>
+      <span class="meta-dot">·</span>
+      <span>TYPE: FACETED-SEARCH</span>
+      <span class="meta-dot">·</span>
+      <span>ENTROPY: MED</span>
+    </div>
+    <h1>Find what to <em>apply to.</em></h1>
+    <p>A searchable list of real olympiads, scholarships, summer schools and programs. Transparent ranking — every result shows why it matched. No invented names, no black box.</p>
+
+    <div class="searchbox" id="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" shape-rendering="crispEdges"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="searchInput" type="text" placeholder="Search 'physics', 'scholarship', 'programming'..." autocomplete="off" />
+      <kbd>⌘K</kbd>
+    </div>
+
+    <div class="stats-line">
+      <span><b id="statTotal">0</b> opportunities</span>
+      <span><b id="statShown">0</b> matching</span>
+      <span>updated <b>16 JUN 2026</b></span>
+    </div>
+  </section>
+
+  <!-- LAYOUT: facets + results -->
+  <div class="layout">
+    <aside class="facets" id="facets"><!-- rendered by JS --></aside>
+    <section class="results-col">
+      <div class="results-bar">
+        <span class="results-count"><b id="rCount">0</b> results</span>
+        <div class="sort-select" id="sortSelect">
+          <button class="sort-btn active" data-sort="relevance">Relevance</button>
+          <button class="sort-btn" data-sort="deadline">Deadline</button>
+          <button class="sort-btn" data-sort="prestige">Prestige</button>
+        </div>
+      </div>
+      <div class="chips-row" id="chipsRow"></div>
+      <div class="result-list" id="resultList"></div>
+    </section>
+  </div>
+
+  <div class="divider">· END OF RESULTS · FILTERS PERSIST IN URL ·</div>
+</main>
+
+<!-- COMMAND PALETTE (⌘K) -->
+<div class="palette-backdrop" id="palette">
+  <div class="palette" role="dialog" aria-label="Quick search">
+    <div class="palette-input-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="paletteInput" type="text" placeholder="Jump to an opportunity..." autocomplete="off" />
+    </div>
+    <div class="palette-list" id="paletteList"></div>
+    <div class="palette-foot">
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// APP — vanilla, no framework. Renders facets + results, wires ⌘K.
+// ============================================================
+(function(){
+  'use strict';
+  const OPPS = window.__OPPS__ || [];
+  const $ = (s) => document.querySelector(s);
+  const els = {
+    input: $('#searchInput'),
+    facets: $('#facets'),
+    chips: $('#chipsRow'),
+    list: $('#resultList'),
+    rCount: $('#rCount'),
+    statTotal: $('#statTotal'),
+    statShown: $('#statShown'),
+    cntCorner: $('#cntCorner'),
+    sortSelect: $('#sortSelect'),
+    progress: $('#progress'),
+    palette: $('#palette'),
+    paletteInput: $('#paletteInput'),
+    paletteList: $('#paletteList'),
+    searchbox: $('#searchbox'),
+  };
+
+  const state = { query: '', grade: null, direction: null, category: null, format: null, cost: null, sort: 'relevance' };
+
+  // ---- URL state sync (filters persist) ----
+  function readUrl() {
+    const p = new URLSearchParams(location.hash.slice(1));
+    state.query = p.get('q') || '';
+    state.grade = p.get('grade') ? Number(p.get('grade')) : null;
+    state.direction = p.get('direction') || null;
+    state.category = p.get('category') || null;
+    state.format = p.get('format') || null;
+    state.cost = p.get('cost') || null;
+    state.sort = p.get('sort') || 'relevance';
+    els.input.value = state.query;
+  }
+  function writeUrl() {
+    const p = new URLSearchParams();
+    if (state.query) p.set('q', state.query);
+    if (state.grade) p.set('grade', state.grade);
+    if (state.direction) p.set('direction', state.direction);
+    if (state.category) p.set('category', state.category);
+    if (state.format) p.set('format', state.format);
+    if (state.cost) p.set('cost', state.cost);
+    if (state.sort !== 'relevance') p.set('sort', state.sort);
+    const h = p.toString();
+    history.replaceState(null, '', h ? '#' + h : location.pathname);
+  }
+
+  // ---- Facet definitions ----
+  const FACET_DEFS = [
+    { key: 'category', label: 'Category' },
+    { key: 'direction', label: 'Direction' },
+    { key: 'format', label: 'Format' },
+    { key: 'cost', label: 'Cost' },
+  ];
+  const DIRECTIONS = ['stem','business','cs','science','social','humanities','finance','languages'];
+  const CATEGORIES = ['olympiad','scholarship','summer_school','program','internship','hackathon','test'];
+  const FORMATS = ['online','offline','hybrid'];
+  const COSTS = ['free','paid'];
+
+  function renderFacets(facets) {
+    const counts = {
+      category: Object.fromEntries((facets.category||[]).map(f=>[f.value,f.count])),
+      direction: Object.fromEntries((facets.direction||[]).map(f=>[f.value,f.count])),
+      format: Object.fromEntries((facets.format||[]).map(f=>[f.value,f.count])),
+      cost: Object.fromEntries((facets.cost||[]).map(f=>[f.value,f.count])),
+    };
+    const optList = (vals, key, counts) => vals.map(v => {
+      const c = counts[v] || 0;
+      const active = state[key] === v;
+      return `<div class="facet-opt ${active?'active':''}" data-facet="${key}" data-val="${v}">
+        <span>${labelFor(v)}</span><span class="fo-count">${c}</span></div>`;
+    }).join('');
+
+    els.facets.innerHTML = `
+      <div class="facet-group">
+        <div class="facet-label">Grade</div>
+        <div class="grade-chips">
+          ${[8,9,10,11,12].map(g=>`<div class="grade-chip ${state.grade===g?'active':''}" data-grade="${g}">${g}</div>`).join('')}
+        </div>
+      </div>
+      <div class="facet-group"><div class="facet-label">Category</div>${optList(CATEGORIES,'category',counts.category)}</div>
+      <div class="facet-group"><div class="facet-label">Direction</div>${optList(DIRECTIONS,'direction',counts.direction)}</div>
+      <div class="facet-group"><div class="facet-label">Format</div>${optList(FORMATS,'format',counts.format)}</div>
+      <div class="facet-group"><div class="facet-label">Cost</div>${optList(COSTS,'cost',counts.cost)}</div>
+    `;
+  }
+
+  function labelFor(v) {
+    const map = { stem:'STEM', business:'Business', cs:'Programming', science:'Science', social:'Social Impact', humanities:'Humanities', finance:'Finance', languages:'Languages',
+      olympiad:'Olympiad', scholarship:'Scholarship', summer_school:'Summer School', program:'Program', internship:'Internship', hackathon:'Hackathon', test:'Test',
+      online:'Online', offline:'Offline', hybrid:'Hybrid', free:'Free', paid:'Paid' };
+    return map[v] || v;
+  }
+
+  // ---- Save to localStorage (events stub — real wiring comes in dashboard phase) ----
+  function getSaved(){ try { return JSON.parse(localStorage.getItem('mh.saved')||'[]'); } catch { return []; } }
+  function isSaved(id){ return getSaved().includes(id); }
+  function toggleSave(id){
+    const s = getSaved(); const i = s.indexOf(id);
+    if (i>=0) s.splice(i,1); else s.push(id);
+    localStorage.setItem('mh.saved', JSON.stringify(s));
+    // update buttons for this id
+    document.querySelectorAll(`[data-save="${id}"]`).forEach(b=>{
+      b.classList.toggle('saved', s.includes(id));
+      b.querySelector('.save-label').textContent = s.includes(id) ? 'Saved' : 'Save';
+    });
+  }
+
+  // ---- Prestige bars (1..5) ----
+  function prestigeBars(p){
+    let html = '<div class="bars">';
+    for (let i=1;i<=5;i++) html += `<div class="bar ${i<=p?'on':''}"></div>`;
+    html += '</div><span class="lvl">P'+p+'</span>';
+    return html;
+  }
+
+  // ---- Render results ----
+  function render(res) {
+    els.statTotal.textContent = OPPS.length;
+    els.statShown.textContent = res.total;
+    els.rCount.textContent = res.total;
+    els.cntCorner.textContent = res.total;
+
+    // chips (active filters)
+    const chips = [];
+    if (state.query) chips.push({k:'query',label:`"${state.query}"`});
+    if (state.grade) chips.push({k:'grade',label:`Grade ${state.grade}`});
+    ['category','direction','format','cost'].forEach(k=>{ if (state[k]) chips.push({k,label:labelFor(state[k])}); });
+    els.chips.innerHTML = chips.length ? chips.map(c=>`<span class="chip" data-chip="${c.k}">${c.label}<button aria-label="remove">×</button></span>`).join('') + `<span class="chip clear-all" data-chip="clear">Clear all</span>` : '';
+
+    if (!res.results.length) {
+      els.list.innerHTML = '<div class="empty"><p>No opportunities match — loosen a filter or rephrase.</p></div>';
+      return;
+    }
+
+    els.list.innerHTML = res.results.map((r,i)=>{
+      const urgency = deadlineUrgency(r);
+      const uLabel = {soon:'SOON', mid:'OPEN', far:'LATER', open:'YEAR-ROUND', past:'PAST', unknown:'CHECK'}[urgency];
+      const dl = deadlineLabel(r);
+      const reasons = r._reasons.map(rs=>{
+        const isMatch = rs.startsWith('matches');
+        return `<span class="reason ${isMatch?'match':''}">${escapeHtml(rs)}</span>`;
+      }).join('');
+      const dirs = (Array.isArray(r.direction)?r.direction:[r.direction]).map(labelFor).join(' · ');
+      return `
+      <article class="result" style="animation-delay:${Math.min(i*40,400)}ms">
+        <div class="r-prestige">${prestigeBars(r.prestige||3)}</div>
+        <div class="r-body">
+          <div class="r-head">
+            <span class="r-cat">${labelFor(r.category)}</span>
+          </div>
+          <h3 class="r-title"><a href="${r.apply_url}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></h3>
+          <p class="r-desc">${escapeHtml(r.description)}</p>
+          <div class="r-meta">
+            <span><b>grade</b> ${r.grade_min}–${r.grade_max}</span>
+            <span><b>${labelFor(r.format)}</b></span>
+            <span>${dirs}</span>
+            <span><b>${labelFor(r.cost)}</b></span>
+            <span class="deadline">${escapeHtml(dl)}</span>
+          </div>
+          <div class="r-reasons">${reasons}</div>
+          <div class="r-source">src: <a href="${r.source_url}" target="_blank" rel="noopener">${shortUrl(r.source_url)}</a></div>
+        </div>
+        <div class="r-actions">
+          <span class="urgency urgency-${urgency}">${uLabel}</span>
+          <button class="save-btn ${isSaved(r.id)?'saved':''}" data-save="${r.id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span class="save-label">${isSaved(r.id)?'Saved':'Save'}</span>
+          </button>
+        </div>
+      </article>`;
+    }).join('');
+
+    // observe results for reveal
+    observeReveal();
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function shortUrl(u){ try { return new URL(u).hostname.replace('www.',''); } catch { return u; } }
+
+  // ---- IntersectionObserver reveal (clip-path stagger) ----
+  let revealObs;
+  function observeReveal(){
+    if (revealObs) revealObs.disconnect();
+    revealObs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-in'); revealObs.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    document.querySelectorAll('.result:not(.is-in)').forEach(el=>revealObs.observe(el));
+  }
+
+  // ---- Run search + render ----
+  function run(){
+    const res = search(OPPS, state);
+    render(res);
+    renderFacets(res.facets);
+    writeUrl();
+  }
+
+  // ---- Event wiring ----
+  let debounceT;
+  els.input.addEventListener('input', (e)=>{
+    clearTimeout(debounceT);
+    debounceT = setTimeout(()=>{ state.query = e.target.value.trim(); run(); }, 120);
+  });
+
+  els.facets.addEventListener('click', (e)=>{
+    const opt = e.target.closest('.facet-opt');
+    const chip = e.target.closest('.grade-chip');
+    if (opt) {
+      const k = opt.dataset.facet, v = opt.dataset.val;
+      state[k] = state[k] === v ? null : v; run();
+    } else if (chip) {
+      const g = Number(chip.dataset.grade);
+      state.grade = state.grade === g ? null : g; run();
+    }
+  });
+
+  els.chips.addEventListener('click', (e)=>{
+    const chip = e.target.closest('[data-chip]');
+    if (!chip) return;
+    const k = chip.dataset.chip;
+    if (k === 'clear') { Object.assign(state,{query:'',grade:null,direction:null,category:null,format:null,cost:null}); els.input.value=''; }
+    else if (k==='query'){ state.query=''; els.input.value=''; }
+    else if (k==='grade'){ state.grade=null; }
+    else { state[k]=null; }
+    run();
+  });
+
+  els.sortSelect.addEventListener('click',(e)=>{
+    const b = e.target.closest('.sort-btn'); if(!b) return;
+    state.sort = b.dataset.sort;
+    els.sortSelect.querySelectorAll('.sort-btn').forEach(x=>x.classList.toggle('active', x===b));
+    run();
+  });
+
+  els.list.addEventListener('click',(e)=>{
+    const sb = e.target.closest('[data-save]');
+    if (sb) { e.preventDefault(); toggleSave(sb.dataset.save); }
+  });
+
+  // ---- Progress bar ----
+  window.addEventListener('scroll', ()=>{ const h = document.documentElement; const p = h.scrollTop/(h.scrollHeight-h.clientHeight); els.progress.style.width = (p*100)+'%'; }, {passive:true});
+
+  // ---- Command palette (⌘K) ----
+  let paletteState = { items: [], active: 0 };
+  function openPalette(){ els.palette.classList.add('is-open'); els.paletteInput.value=''; updatePalette(''); setTimeout(()=>els.paletteInput.focus(),50); }
+  function closePalette(){ els.palette.classList.remove('is-open'); }
+  function updatePalette(q){
+    const sugg = suggest(OPPS, q, 7);
+    paletteState.items = sugg; paletteState.active = 0;
+    if (!sugg.length) { els.paletteList.innerHTML = q ? '<div class="palette-section">No matches</div>' : '<div class="palette-section">Type to search '+OPPS.length+' opportunities</div>'; return; }
+    els.paletteList.innerHTML = '<div class="palette-section">Opportunities</div>' + sugg.map((s,i)=>`
+      <div class="palette-item ${i===0?'active':''}" data-i="${i}" data-id="${s.id}">
+        <span class="pi-title">${escapeHtml(s.title)}</span>
+        <span class="pi-meta">${labelFor(s.category)}</span>
+      </div>`).join('');
+  }
+  els.palette.addEventListener('click',(e)=>{
+    if (e.target===els.palette) closePalette();
+    const it = e.target.closest('.palette-item');
+    if (it) { const id = it.dataset.id; const opp = OPPS.find(o=>o.id===id); if(opp) window.open(opp.apply_url,'_blank'); closePalette(); }
+  });
+  els.paletteInput.addEventListener('input',(e)=>updatePalette(e.target.value));
+  els.paletteInput.addEventListener('keydown',(e)=>{
+    const items = paletteState.items;
+    if (e.key==='ArrowDown'){ e.preventDefault(); paletteState.active=Math.min(paletteState.active+1,items.length-1); paintPaletteActive(); }
+    else if (e.key==='ArrowUp'){ e.preventDefault(); paletteState.active=Math.max(paletteState.active-1,0); paintPaletteActive(); }
+    else if (e.key==='Enter'){ e.preventDefault(); const opp=items[paletteState.active]; if(opp) window.open(opp.apply_url,'_blank'); closePalette(); }
+    else if (e.key==='Escape'){ closePalette(); }
+  });
+  function paintPaletteActive(){ els.paletteList.querySelectorAll('.palette-item').forEach((el,i)=>el.classList.toggle('active', i===paletteState.active)); }
+
+  document.addEventListener('keydown',(e)=>{
+    if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); els.palette.classList.contains('is-open')?closePalette():openPalette(); }
+    else if (e.key==='Escape'){ closePalette(); }
+    else if (e.key==='/' && document.activeElement!==els.input && !els.palette.classList.contains('is-open')){ e.preventDefault(); els.input.focus(); }
+  });
+
+  // ---- Init ----
+  readUrl();
+  // hero searchbox wipe reveal
+  setTimeout(()=>els.searchbox.classList.add('is-in'), 200);
+  run();
+})();
+</script>
+</body>
+</html>
